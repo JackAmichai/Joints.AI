@@ -1,0 +1,18 @@
+services:
+  # Python FastAPI Backend
+  - type: web
+    name: joints-ai-backend
+    env: python
+    buildCommand: "cd backend && pip install -r requirements.txt && pip install -e ."
+    startCommand: "cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+    plan: free
+    region: ohio
+    envVars:
+      - key: TECHPHYSIO_CORS_ORIGINS
+        value: "https://joints-ai.vercel.app" # Update this to your Vercel URL
+      - key: TECHPHYSIO_LOG_LEVEL
+        value: INFO
+      - key: TECHPHYSIO_DB_URL
+        value: "sqlite:///./joints_ai.db"
+      - key: PYTHON_VERSION
+        value: 3.11.6
