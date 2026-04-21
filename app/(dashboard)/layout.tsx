@@ -23,7 +23,7 @@ export default function DashboardLayout({
       }
       setUser({
         id: session.user.id,
-        email: session.user.email!,
+        email: session.user.email || "",
       });
       setLoading(false);
     };
@@ -35,7 +35,11 @@ export default function DashboardLayout({
   return (
     <div className="flex min-h-screen">
       <Sidebar />
-      <main className="flex-1 p-8">{children}</main>
+      <main className="flex-1 p-4 md:p-8 lg:ml-0 ml-0 w-full">
+        <div className="lg:pl-0 pl-12">
+          {children}
+        </div>
+      </main>
     </div>
   );
 }

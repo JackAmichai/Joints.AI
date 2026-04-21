@@ -29,6 +29,14 @@ function Input({ className, ...props }: InputProps) {
   );
 }
 
+function isValidPassword(pwd: string): boolean {
+  if (pwd.length < 8) return false;
+  if (!/[A-Z]/.test(pwd)) return false;
+  if (!/[a-z]/.test(pwd)) return false;
+  if (!/[0-9]/.test(pwd)) return false;
+  return true;
+}
+
 export function SignupForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -42,6 +50,12 @@ export function SignupForm() {
     e.preventDefault();
     setLoading(true);
     setError(null);
+
+    if (!isValidPassword(password)) {
+      setError("Password must be at least 8 characters with uppercase, lowercase, and a number");
+      setLoading(false);
+      return;
+    }
 
     const { data, error: authError } = await supabase.auth.signUp({
       email,
@@ -101,14 +115,24 @@ export function SignupForm() {
         />
       </div>
       <div>
-        <label className="block text-sm font-medium mb-1">Password</label>
+        <label htmlFor="password" className="block text-sm font-medium mb-1">Password</label>
         <Input
+          id="password"
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
-          minLength={6}
+          minLength={8}
+          aria-describedby="password-hint"
         />
+        <p id="password-hint" className="text-xs text-slate-500 mt-1">
+          At least 8 characters with uppercase, lowercase, and a number
+        </p>
+        {password.length > 0 && (
+          <p className={`text-xs mt-1 ${isValidPassword(password) ? "text-green-600" : "text-red-500"}`}>
+            {isValidPassword(password) ? "Password is strong" : "Password is weak"}
+          </p>
+        )}
       </div>
       <Button type="submit" className="w-full" disabled={loading}>
         {loading ? "Creating account..." : "Create Account"}

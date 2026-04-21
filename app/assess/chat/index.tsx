@@ -4,7 +4,8 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, Bot, ArrowRight, CheckCircle } from "lucide-react";
+import { useToast } from "@/components/ui/toast";
+import { Send, Bot, ArrowRight, CheckCircle, AlertCircle } from "lucide-react";
 
 interface ChatMessage {
   id: string;
@@ -15,14 +16,17 @@ interface ChatMessage {
 
 export default function ChatPage() {
   const router = useRouter();
+  const { toast } = useToast();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     startConversation();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -31,16 +35,20 @@ export default function ChatPage() {
 
   const startConversation = async () => {
     setLoading(true);
+    setError(null);
     try {
       const res = await fetch("/api/conversational/start", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
       });
+      if (!res.ok) throw new Error("Failed to start conversation");
       const data = await res.json();
       setSessionId(data.session_id);
       setMessages([{ id: "greeting", role: "assistant", content: data.greeting }]);
-    } catch (error) {
-      console.error("Failed to start conversation:", error);
+    } catch (err) {
+      console.error("Failed to start conversation:", err);
+      setError("Could not start conversation. Please refresh the page.");
+      toast("Failed to start conversation", "error");
     } finally {
       setLoading(false);
     }
@@ -58,6 +66,7 @@ export default function ChatPage() {
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setLoading(true);
+    setError(null);
 
     try {
       const res = await fetch("/api/conversational/chat", {
@@ -65,6 +74,8 @@ export default function ChatPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ session_id: sessionId, message: input }),
       });
+
+      if (!res.ok) throw new Error("Failed to send message");
 
       const data = await res.json();
 
@@ -84,7 +95,7 @@ export default function ChatPage() {
             content: "Perfect! Your exercise plan is being prepared...",
           },
         ]);
-        localStorage.setItem("conversational_intake", JSON.stringify(data.subjective));
+        sessionStorage.setItem("conversational_intake", JSON.stringify(data.subjective));
         router.push("/assess/review");
       } else {
         setMessages((prev) => [
@@ -92,8 +103,11 @@ export default function ChatPage() {
           { id: `${Date.now()}-ai`, role: "assistant", content: data.question },
         ]);
       }
-    } catch (error) {
-      console.error("Failed to send message:", error);
+    } catch (err) {
+      console.error("Failed to send message:", err);
+      setError("Failed to send message. Please try again.");
+      toast("Failed to send message", "error");
+      setMessages((prev) => prev.filter(m => m.id !== userMessage.id));
     } finally {
       setLoading(false);
     }
