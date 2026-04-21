@@ -1,57 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
 import { PlanViewer } from "@/components/exercises/PlanViewer";
 import { AlertTriangle, Clock, ShieldCheck, RefreshCw } from "lucide-react";
 
-interface Exercise {
-  id: string;
-  name: string;
-  phase: string;
-  target_region: string;
-  instructions: string[];
-  dose: string;
-  stop_conditions: string[];
-  media_placeholders?: {
-    video?: { caption: string };
-    image?: { caption: string };
-  };
-  citations?: Array<{
-    source_title: string;
-    chunk_id: string;
-    score: number;
-  }>;
-}
+import {
+  fetchSubmission as fetchSubmissionApi,
+  isTerminal
+} from "@/lib/api/fetchSubmission";
+import type { IntakeSubmission } from "@/lib/types/intake";
 
-interface PlanPhase {
-  phase: string;
-  summary: string;
-  exercises: Exercise[];
-}
-
-interface RehabPlan {
-  id: string;
-  generated_at: string;
-  phases: PlanPhase[];
-  probabilistic_framing?: {
-    pattern: string;
-    commonly_associated_with: string[];
-    confidence: string;
-  };
-  clinician_reviewed: boolean;
-  clinician_note?: string;
-}
-
-interface IntakeSubmission {
-  id: string;
-  status: string;
-  plan?: RehabPlan;
-  triage?: {
-    disposition: string;
-    halted: boolean;
-  };
-}
+// The backend serializes camelCase via Pydantic aliases + response_model_by_alias=True.
+// We consume those types directly from @/lib/types rather than maintaining a
+// snake_case shadow copy here (which was the source of a bug where every
+// plan field rendered as undefined).
 
 interface ResultsClientProps {
   submissionId: string;
@@ -59,35 +21,54 @@ interface ResultsClientProps {
 }
 
 export function ResultsClient({ submissionId, halted }: ResultsClientProps) {
-  const router = useRouter();
   const [submission, setSubmission] = useState<IntakeSubmission | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!halted);
   const [error, setError] = useState<string | null>(null);
   const [lastFetch, setLastFetch] = useState<Date>(new Date());
 
-  const fetchSubmission = async () => {
+  const fetchSubmission = useCallback(async () => {
     try {
-      const res = await fetch(`/api/intake/${submissionId}`);
-      if (!res.ok) throw new Error("Failed to fetch submission");
-      const data = await res.json();
+      const data = await fetchSubmissionApi(submissionId);
       setSubmission(data);
       setLastFetch(new Date());
+      setError(null);
+      return data;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to fetch");
+      return null;
     } finally {
       setLoading(false);
     }
-  };
+  }, [submissionId]);
 
   useEffect(() => {
     if (halted) {
       setLoading(false);
       return;
     }
-    fetchSubmission();
-    const interval = setInterval(fetchSubmission, 8000);
-    return () => clearInterval(interval);
-  }, [submissionId, halted]);
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const POLL_MS = 8000;
+    async function tick() {
+      if (cancelled) return;
+      const next = await fetchSubmission();
+      if (cancelled) return;
+      // Stop polling once we hit a terminal state. On error, keep polling
+      // but back off — the backend may just be restarting.
+      if (!next) {
+        timer = setTimeout(tick, POLL_MS * 2);
+        return;
+      }
+      if (!isTerminal(next.status)) {
+        timer = setTimeout(tick, POLL_MS);
+      }
+    }
+    tick();
+    return () => {
+      cancelled = true;
+      if (timer) clearTimeout(timer);
+    };
+  }, [fetchSubmission, halted]);
 
   const handlePrint = () => window.print();
 
@@ -194,44 +175,33 @@ export function ResultsClient({ submissionId, halted }: ResultsClientProps) {
     );
   }
 
-  const plan = submission.plan;
+  // HITL gate: the draft is not released until a clinician has cleared it.
+  if (!submission.plan.clinicianReviewed) {
+    return (
+      <div className="mx-auto max-w-3xl px-6 py-12">
+        <section className="mt-4 rounded-lg border border-slate-200 p-6">
+          <div className="flex items-start gap-3">
+            <Clock className="h-5 w-5 mt-0.5 text-blue-600 shrink-0" />
+            <div>
+              <h1 className="text-xl font-semibold">A clinician is reviewing your plan.</h1>
+              <p className="mt-2 text-slate-500">
+                The draft is ready and queued for human sign-off. It won&apos;t
+                be released until a clinician has cleared it.
+              </p>
+              <p className="mt-4 text-xs text-slate-400">
+                Last checked: {lastFetch.toLocaleTimeString()}
+              </p>
+            </div>
+          </div>
+        </section>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-12">
       <PlanViewer
-        plan={{
-          id: plan.id,
-          generatedAt: plan.generated_at,
-          phases: plan.phases.map((p) => ({
-            phase: p.phase,
-            summary: p.summary,
-            exercises: p.exercises.map((e) => ({
-              id: e.id,
-              name: e.name,
-              phase: e.phase,
-              targetRegion: e.target_region,
-              instructions: e.instructions,
-              dose: e.dose,
-              stopConditions: e.stop_conditions,
-              mediaPlaceholders: e.media_placeholders,
-              citations: e.citations?.map((c) => ({
-                sourceTitle: c.source_title,
-                chunkId: c.chunk_id,
-                score: c.score,
-              })),
-            })),
-          })),
-          probabilisticFraming: plan.probabilistic_framing
-            ? {
-                pattern: plan.probabilistic_framing.pattern,
-                commonlyAssociatedWith:
-                  plan.probabilistic_framing.commonly_associated_with,
-                confidence: plan.probabilistic_framing.confidence,
-              }
-            : undefined,
-          clinicianReviewed: plan.clinician_reviewed,
-          clinicianNote: plan.clinician_note,
-        }}
+        plan={submission.plan}
         onPrint={handlePrint}
         onDownloadPdf={handleDownloadPdf}
         onExerciseComplete={(id) => console.log("Completed:", id)}

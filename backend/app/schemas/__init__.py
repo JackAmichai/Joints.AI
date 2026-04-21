@@ -1,7 +1,7 @@
 from app.schemas.agents import (
+    Exercise,
     ExercisePhase,
     ExtractedClinicalPayload,
-    Exercise,
     RehabPlan,
     TriageDisposition,
     TriageResult,

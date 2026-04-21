@@ -1,9 +1,9 @@
-from enum import Enum
+from enum import StrEnum
 
 from pydantic import BaseModel
 
 
-class RedFlagCategory(str, Enum):
+class RedFlagCategory(StrEnum):
     cauda_equina = "cauda_equina"
     severe_trauma = "severe_trauma"
     radiating_nerve = "radiating_nerve"
@@ -13,12 +13,12 @@ class RedFlagCategory(str, Enum):
     vascular = "vascular"
 
 
-class RedFlagSeverity(str, Enum):
+class RedFlagSeverity(StrEnum):
     critical = "critical"
     high = "high"
 
 
-class RedFlagDisposition(str, Enum):
+class RedFlagDisposition(StrEnum):
     emergency_room = "emergency_room"
     urgent_physician = "urgent_physician"
     physician_review = "physician_review"

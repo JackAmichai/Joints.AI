@@ -24,7 +24,7 @@ from app.agents.triage import TriageAgent
 from app.config import settings
 from app.db.store import SubmissionStore, get_submission_store
 from app.logging import log
-from app.schemas.agents import TriageDisposition, TriageResult
+from app.schemas.agents import TriageResult
 from app.schemas.intake import (
     IntakeStatus,
     IntakeSubmission,

@@ -1,4 +1,4 @@
-from enum import Enum
+from enum import StrEnum
 from typing import Literal
 
 from pydantic import BaseModel
@@ -9,7 +9,7 @@ filter keys at retrieval time.
 """
 
 
-class BodyRegion(str, Enum):
+class BodyRegion(StrEnum):
     cervical_spine = "cervical_spine"
     thoracic_spine = "thoracic_spine"
     lumbar_spine = "lumbar_spine"

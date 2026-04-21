@@ -1,5 +1,5 @@
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Literal
 
 from pydantic import BaseModel, Field
@@ -53,7 +53,7 @@ class ExtractedClinicalPayload(BaseModel):
 # =====================================================================
 
 
-class TriageDisposition(str, Enum):
+class TriageDisposition(StrEnum):
     proceed = "proceed"
     halt_seek_emergency = "halt_seek_emergency"
     halt_seek_physician = "halt_seek_physician"

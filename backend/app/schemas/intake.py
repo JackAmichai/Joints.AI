@@ -1,12 +1,20 @@
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
+from typing import TYPE_CHECKING
 
 from pydantic import BaseModel, Field
 
 from app.schemas.body import BodyRegion
 
+if TYPE_CHECKING:
+    from app.schemas.agents import (
+        ExtractedClinicalPayload,
+        RehabPlan,
+        TriageResult,
+    )
 
-class PainQuality(str, Enum):
+
+class PainQuality(StrEnum):
     sharp = "sharp"
     dull = "dull"
     aching = "aching"
@@ -18,7 +26,7 @@ class PainQuality(str, Enum):
     stiffness = "stiffness"
 
 
-class PainOnset(str, Enum):
+class PainOnset(StrEnum):
     sudden_traumatic = "sudden_traumatic"
     sudden_atraumatic = "sudden_atraumatic"
     gradual = "gradual"
@@ -26,7 +34,7 @@ class PainOnset(str, Enum):
     unknown = "unknown"
 
 
-class Aggravator(str, Enum):
+class Aggravator(StrEnum):
     flexion = "flexion"
     extension = "extension"
     rotation = "rotation"
@@ -47,7 +55,7 @@ class Aggravator(str, Enum):
     at_night = "at_night"
 
 
-class Reliever(str, Enum):
+class Reliever(StrEnum):
     rest = "rest"
     heat = "heat"
     ice = "ice"
@@ -58,7 +66,7 @@ class Reliever(str, Enum):
     nothing_helps = "nothing_helps"
 
 
-class UploadedFileCategory(str, Enum):
+class UploadedFileCategory(StrEnum):
     imaging_report = "imaging_report"
     imaging_dicom = "imaging_dicom"
     imaging_photo = "imaging_photo"
@@ -67,7 +75,7 @@ class UploadedFileCategory(str, Enum):
     other = "other"
 
 
-class UploadStatus(str, Enum):
+class UploadStatus(StrEnum):
     queued = "queued"
     uploading = "uploading"
     uploaded = "uploaded"
@@ -104,7 +112,7 @@ class UploadedFileMeta(BaseModel):
     model_config = {"populate_by_name": True}
 
 
-class IntakeStatus(str, Enum):
+class IntakeStatus(StrEnum):
     draft = "draft"
     submitted = "submitted"
     triaging = "triaging"
@@ -127,9 +135,9 @@ class IntakeSubmission(BaseModel):
     files: list[UploadedFileMeta] = Field(default_factory=list)
 
     # Populated by the agent pipeline
-    extracted: "ExtractedClinicalPayload | None" = None  # noqa: F821 (forward ref)
-    triage: "TriageResult | None" = None  # noqa: F821
-    plan: "RehabPlan | None" = None  # noqa: F821
+    extracted: "ExtractedClinicalPayload | None" = None
+    triage: "TriageResult | None" = None
+    plan: "RehabPlan | None" = None
 
     model_config = {"populate_by_name": True}
 
@@ -144,7 +152,7 @@ class SubmitIntakeRequest(BaseModel):
 
 class SubmitIntakeResponse(BaseModel):
     submission_id: str = Field(alias="submissionId")
-    triage: "TriageResult"  # noqa: F821
+    triage: "TriageResult"
     halted: bool
     poll_after_seconds: int | None = Field(alias="pollAfterSeconds")
 
@@ -164,3 +172,4 @@ def _rebuild() -> None:
 
 
 _rebuild()
+
