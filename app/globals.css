@@ -1,0 +1,50 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  @apply antialiased;
+}
+
+/* Focus ring — accessible, non-harsh */
+:focus-visible {
+  outline: 2px solid theme("colors.accent.DEFAULT");
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Bento card utilities */
+@layer components {
+  .bento {
+    @apply bg-paper-raised rounded-bento shadow-bento border border-black/5;
+  }
+  .bento-pad {
+    @apply p-6 md:p-8;
+  }
+  .pill {
+    @apply inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm transition-colors;
+  }
+  .pill-default {
+    @apply border-black/10 bg-paper-sunk text-ink-muted hover:border-accent/40 hover:text-ink;
+  }
+  .pill-active {
+    @apply border-accent bg-accent-soft text-accent;
+  }
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
