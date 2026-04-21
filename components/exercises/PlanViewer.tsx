@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ExerciseCard } from "./ExerciseCard";
+import { ProgressTracker } from "./ProgressTracker";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Printer, Download, ChevronDown, ChevronUp, Play } from "lucide-react";
@@ -211,6 +212,8 @@ export function PlanViewer({
           </p>
         </div>
       )}
+
+      <ProgressTracker planId={plan.id} />
     </div>
   );
 }
