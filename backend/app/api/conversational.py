@@ -1,7 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 
-from app.agents.conversational import ConversationalAgent, get_conversational_agent
+from app.agents.conversational import (
+    ConversationalAgent,
+    QuestionState,
+    get_conversational_agent,
+)
 from app.schemas.intake import SubjectivePainInput
 
 router = APIRouter(prefix="/conversational", tags=["conversational"])
@@ -67,13 +71,18 @@ async def chat_message(
         "relievers": [r.value for r in session.relievers],
     }
 
+    is_complete = session.state == QuestionState.DONE
+    subjective = None
+    if is_complete:
+        subjective = session.to_subjective().model_dump()
+
     return ChatMessageResponse(
         session_id=session.id,
         state=session.state.value,
         question=session.current_question,
         extracted=extracted,
-        is_complete=session.state == ConversationState.DONE,
-        subjective=session.to_subjective().model_dump() if session.state == ConversationState.DONE else None,
+        is_complete=is_complete,
+        subjective=subjective,
     )
 
 
@@ -105,11 +114,16 @@ async def get_session(
         "relievers": [r.value for r in session.relievers],
     }
 
+    is_complete = session.state == QuestionState.DONE
+    subjective = None
+    if is_complete:
+        subjective = session.to_subjective().model_dump()
+
     return ChatMessageResponse(
         session_id=session.id,
         state=session.state.value,
         question=session.current_question,
         extracted=extracted,
-        is_complete=session.state == ConversationState.DONE,
-        subjective=session.to_subjective().model_dump() if session.state == ConversationState.DONE else None,
+        is_complete=is_complete,
+        subjective=subjective,
     )

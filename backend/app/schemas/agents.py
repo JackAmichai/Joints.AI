@@ -124,6 +124,8 @@ class PlanPhase(BaseModel):
     summary: str
     exercises: list[Exercise]
 
+    model_config = {"populate_by_name": True}
+
 
 class ProbabilisticFraming(BaseModel):
     """Hard-coded probabilistic framing. The ONLY place the system talks

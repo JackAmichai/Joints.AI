@@ -383,9 +383,8 @@ class ConversationalAgent:
         }
 
         for phrase, agg in mapping.items():
-            if phrase in text:
-                if agg not in aggravators:
-                    aggravators.append(agg)
+            if phrase in text and agg not in aggravators:
+                aggravators.append(agg)
         return aggravators
 
     @staticmethod
@@ -412,9 +411,8 @@ class ConversationalAgent:
         }
 
         for phrase, rel in mapping.items():
-            if phrase in text:
-                if rel not in relievers:
-                    relievers.append(rel)
+            if phrase in text and rel not in relievers:
+                relievers.append(rel)
         return relievers
 
 

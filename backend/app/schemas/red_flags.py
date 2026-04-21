@@ -31,6 +31,8 @@ class RedFlagRule(BaseModel):
     user_message: str
     disposition: RedFlagDisposition
 
+    model_config = {"populate_by_name": True}
+
 
 class RedFlagHit(BaseModel):
     category: RedFlagCategory
@@ -39,6 +41,8 @@ class RedFlagHit(BaseModel):
     offset: int
     user_message: str
     disposition: RedFlagDisposition
+
+    model_config = {"populate_by_name": True}
 
 
 RED_FLAG_RULES: list[RedFlagRule] = [

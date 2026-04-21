@@ -145,10 +145,9 @@ class FreeTextParser:
 
         # Find pain qualities
         for phrase, quality in PAIN_QUALITY_PHRASES.items():
-            if phrase in text_lower:
-                if quality not in result.pain_qualities:
-                    result.pain_qualities.append(quality)
-                    result.confidence += 0.1
+            if phrase in text_lower and quality not in result.pain_qualities:
+                result.pain_qualities.append(quality)
+                result.confidence += 0.1
         if result.pain_qualities:
             result.confidence = min(result.confidence, 0.5)
 
@@ -195,9 +194,8 @@ class FreeTextParser:
 
         # Find relievers
         for phrase, rel in RELIEVER_PHRASES.items():
-            if phrase in text_lower:
-                if rel not in result.relievers:
-                    result.relievers.append(rel)
+            if phrase in text_lower and rel not in result.relievers:
+                result.relievers.append(rel)
         if result.relievers:
             result.confidence += 0.1
 
@@ -239,4 +237,4 @@ def get_free_text_parser() -> FreeTextParser:
     global _free_text_parser
     if _free_text_parser is None:
         _free_text_parser = FreeTextParser()
-    return _free_text_parser
+    return _free_text_parserrser

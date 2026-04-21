@@ -26,15 +26,51 @@ class SeedExercise:
     name: str
     phase: str
     kinematic_group: str
-    summary: str  # indexed for semantic search
+    summary: str
     instructions: list[str]
     dose: str
     stop_conditions: list[str]
     contraindication_tags: list[str] = field(default_factory=list)
     source_title: str = "TechPhysio internal corpus (scaffold)"
+    youtube_id: str = ""
+
+
+YOUTUBE_EXERCISE_IDS = {
+    "hip-iso-glute-bridge": "UIat2_1V3XU",
+    "hip-rom-90-90-rotation": "8I5-OGPkK9M",
+    "spine-iso-dead-bug": "dw6x2y4FPlA",
+    "spine-rom-cat-cow": "kx2i5M-0qyk",
+    "knee-iso-wall-sit": "西北8C8G1F0",
+    "knee-rom-heel-slides": "西北6C8G1F5",
+    "shoulder-iso-scap-retract-wall": "w8-YP4B7K4",
+    "shoulder-rom-wall-slides": "C3F2Ix5E1V0",
+}
 
 
 SEED_EXERCISES: list[SeedExercise] = [
+    # ─── Hip complex ─────────────────────────────────────────────────────────
+    SeedExercise(
+        id="hip-iso-glute-bridge",
+        name="Supine Glute Bridge — Isometric Hold",
+        phase="isometric_stabilization",
+        kinematic_group="hip_complex",
+        summary=(
+            "Isometric gluteal activation for hip extensors. "
+            "Reinforces posterior-chain recruitment without loaded motion."
+        ),
+        instructions=[
+            "Lie on your back, knees bent at ~90°, feet flat, hip-width apart.",
+            "Press through your heels and lift your hips until your torso makes a straight line from shoulder to knee.",
+            "Hold the top position without arching your lower back — squeeze your glutes, not your lumbar spine.",
+        ],
+        dose="3 sets of 5 holds, 10 seconds each, 30-second rest.",
+        stop_conditions=[
+            "Sharp hip or low-back pain during the hold",
+            "Any paresthesia (tingling, numbness) into the legs",
+        ],
+        contraindication_tags=["active_lumbar_radiculopathy"],
+        youtube_id="UIat2_1V3XU",
+    ),
     # ─── Hip complex ─────────────────────────────────────────────────────────
     SeedExercise(
         id="hip-iso-glute-bridge",
@@ -67,8 +103,14 @@ SEED_EXERCISES: list[SeedExercise] = [
             "Low-load exploration of hip capsular range."
         ),
         instructions=[
-            "Sit on the floor with the front leg bent at 90° in front of you and the rear leg bent at 90° to the side.",
-            "Keep your trunk upright and slowly switch sides by pivoting both knees over to the other direction.",
+            (
+                "Sit on the floor with the front leg bent at 90° in front of you "
+                "and the rear leg bent at 90° to the side."
+            ),
+            (
+                "Keep your trunk upright and slowly switch sides by pivoting "
+                "both knees over to the other direction."
+            ),
             "Move slowly — this is a range-of-motion exploration, not a stretch.",
         ],
         dose="2 sets of 8 alternating reps, rest 30 seconds between sets.",
@@ -225,8 +267,14 @@ SEED_EXERCISES: list[SeedExercise] = [
             "Baseline scapular control before adding motion."
         ),
         instructions=[
-            "Stand an arm's length from a wall. Place your palms flat against it at shoulder height.",
-            "Without moving your arms, gently pull your shoulder blades down and back toward each other.",
+            (
+                "Stand an arm's length from a wall. Place your palms flat "
+                "against it at shoulder height."
+            ),
+            (
+                "Without moving your arms, gently pull your shoulder blades "
+                "down and back toward each other."
+            ),
             "Hold without shrugging your shoulders up toward your ears.",
         ],
         dose="3 sets of 5 holds, 8 seconds each.",
@@ -268,5 +316,135 @@ SEED_EXERCISES: list[SeedExercise] = [
         dose="3 sets of 10 reps, slow controlled tempo.",
         stop_conditions=["Sharp shoulder pain", "Loss of neutral neck (chin jutting forward)"],
         contraindication_tags=["acute_rotator_cuff_tear"],
+    ),
+    # ─── Neck ───────────────────────────────────────────────────────────
+    SeedExercise(
+        id="neck-iso-chin-tuck",
+        name="Chin Tuck — Isometric Hold",
+        phase="isometric_stabilization",
+        kinematic_group="spine",
+        summary="Cervical deep flexor activation. Foundation for neck stability.",
+        instructions=[
+            "Sit or stand with your spine straight.",
+            "Gently draw your chin straight back, as if making a double chin.",
+            "Hold for the count, keeping your eyes level — don't tilt your head.",
+        ],
+        dose="3 sets of 8 holds, 10 seconds each.",
+        stop_conditions=["Dizziness", "Sharp neck pain", "Numbness or tingling in arms"],
+        contraindication_tags=["acute_whiplash", "cervical_fracture"],
+    ),
+    SeedExercise(
+        id="neck-rom-rotation",
+        name="Seated Cervical Rotation",
+        phase="controlled_range_of_motion",
+        kinematic_group="spine",
+        summary="Gentle neck rotation within comfortable range.",
+        instructions=[
+            "Sit tall with shoulders relaxed.",
+            "Slowly turn your head to look over one shoulder.",
+            "Move slowly and smoothly — never force the range.",
+            "Return to center and repeat to the other side.",
+        ],
+        dose="2 sets of 8 reps per side.",
+        stop_conditions=["Sharp pain", "Dizziness", "Radiating arm pain"],
+        contraindication_tags=["acute_whiplash", "cervical_radiculopathy"],
+    ),
+    # ─── Elbow ─────────────────────────────────────────────────────────
+    SeedExercise(
+        id="elbow-iso-wrist flexion",
+        name="Wrist Flexor Isometric",
+        phase="isometric_stabilization",
+        kinematic_group="upper_limb",
+        summary="Load-free forearm flexor activation for elbow health.",
+        instructions=[
+            "Extend your arm in front, palm up.",
+            "With your other hand, gently press down on your fingers.",
+            "Resist without actually letting your fingers move down.",
+        ],
+        dose="3 sets of 5 holds, 10 seconds each.",
+        stop_conditions=["Elbow pain during the hold", "Tingling in fingers"],
+        contraindication_tags=["medial_epicondylitis_acute"],
+    ),
+    SeedExercise(
+        id="elbow-rom-supination",
+        name="Seated Supination-Pronation",
+        phase="controlled_range_of_motion",
+        kinematic_group="upper_limb",
+        summary="Forearm rotation without loading the elbow.",
+        instructions=[
+            "Sit with elbow at 90 degrees, held at your side.",
+            "Rotate your palm up (supination) then down (pronation).",
+            "Keep the movement slow and controlled.",
+        ],
+        dose="2 sets of 12 reps.",
+        stop_conditions=["Elbow pain during movement", "Clicking or catching"],
+        contraindication_tags=["tennis_elbow_acute", "golfer_elbow_acute"],
+    ),
+    # ─── Ankle ─────────────────────────────────────────────────────────
+    SeedExercise(
+        id="ankle-iso-calf-raise",
+        name="Double-Leg Calf Raise",
+        phase="isometric_stabilization",
+        kinematic_group="lower_limb",
+        summary="Low-load calf activation for ankle stability.",
+        instructions=[
+            "Stand holding a wall or chair for balance.",
+            "Rise up onto the balls of your feet.",
+            "Hold at the top, then lower slowly.",
+        ],
+        dose="3 sets of 12 reps.",
+        stop_conditions=["Sharp ankle pain", "Loss of balance"],
+        contraindication_tags=["acute_ankle_sprain_moderate", "achilles_tendinopathy_acute"],
+    ),
+    SeedExercise(
+        id="ankle-rom-alphabet",
+        name="Ankle Alphabet",
+        phase="controlled_range_of_motion",
+        kinematic_group="lower_limb",
+        summary="Trace the alphabet with your toes to restore ankle mobility.",
+        instructions=[
+            "Sit with leg extended, pen strapped to your big toe (or imagine drawing).",
+            "Trace each letter of the alphabet with your foot.",
+            "Move only at the ankle — keep your leg still.",
+            "Use large letters for more range.",
+        ],
+        dose="2-3 times through the full alphabet.",
+        stop_conditions=["Sharp pain", "Excessive swelling"],
+        contraindication_tags=["ankle_fracture", "post_ankle_surgery"],
+    ),
+    # ─── Wrist ─────────────────────────────────────────────────────────
+    SeedExercise(
+        id="wrist-iso-prayer-stretch",
+        name="Prayer Stretch — Wrist Extension",
+        phase="isometric_stabilization",
+        kinematic_group="upper_limb",
+        summary="Gentle wrist extensor stretch with activation.",
+        instructions=[
+            "Press palms together in front of chest, fingers pointing up.",
+            "Slowly lower hands while keeping palms pressed together.",
+            "Stop when you feel a stretch in your inner forearms/wrists.",
+        ],
+        dose="3 sets of 30 seconds.",
+        stop_conditions=["Sharp wrist pain", "Numbness in fingers"],
+        contraindication_tags=["carpal_tunnel_acute", "wrist_fracture"],
+    ),
+    SeedExercise(
+        id="wrist-rom-circles",
+        name="Wrist Circles",
+        phase="controlled_range_of_motion",
+        kinematic_group="upper_limb",
+        summary="Gentle full-range wrist mobility.",
+        instructions=[
+            "Extend arms in front, make fists.",
+            "Slowly rotate wrists in circles — clockwise, then counter.",
+            "Keep movements smooth and controlled.",
+        ],
+        dose="2 sets of 10 circles each direction.",
+        stop_conditions=["Pain during circles", "Clicking"],
+        contraindication_tags=["wrist_fracture", "post_carpal_tunnel_release"],
+    ),
+]
+"Clicking"],
+        contraindication_tags=["wrist_fracture", "post_carpal_tunnel_release"],
     ),
 ]

@@ -101,7 +101,7 @@ export function PainDescriptionForm() {
               In your own words
             </label>
             <p className="mt-1 text-sm text-ink-muted">
-              Describe your pain, or click "AI Parse" to extract automatically
+              Describe your pain, or click &quot;AI Parse&quot; to extract automatically
             </p>
           </div>
           <Button
