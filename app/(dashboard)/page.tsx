@@ -84,7 +84,7 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid md:grid-cols-3 gap-6 mb-8">
-        <Link href="/dashboard/intake">
+        <Link href="/assess/method">
           <Card className="hover:shadow-md transition-shadow cursor-pointer">
             <CardContent className="p-6">
               <div className="flex items-center gap-4">
@@ -100,33 +100,37 @@ export default function DashboardPage() {
           </Card>
         </Link>
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                <History className="h-6 w-6 text-blue-600" />
+        <Link href="/dashboard/history">
+          <Card className="hover:shadow-md transition-shadow cursor-pointer">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <History className="h-6 w-6 text-blue-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold">Your Plans</h3>
+                  <p className="text-sm text-slate-500">View past assessments</p>
+                </div>
               </div>
-              <div>
-                <h3 className="font-semibold">Your Plans</h3>
-                <p className="text-sm text-slate-500">View past assessments</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </Link>
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                <TrendingUp className="h-6 w-6 text-green-600" />
+        <Link href="/dashboard/settings">
+          <Card className="hover:shadow-md transition-shadow cursor-pointer">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                  <TrendingUp className="h-6 w-6 text-green-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold">Settings</h3>
+                  <p className="text-sm text-slate-500">Manage your profile</p>
+                </div>
               </div>
-              <div>
-                <h3 className="font-semibold">Progress</h3>
-                <p className="text-sm text-slate-500">View your stats</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </Link>
       </div>
 
       <Card className="mb-8">

@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { useAuthStore } from "@/store/authStore";
 import { Plus, Calendar, ArrowRight, Clock, Activity } from "lucide-react";
 
 interface PlanSummary {
@@ -16,29 +17,36 @@ interface PlanSummary {
 }
 
 export default function HistoryPage() {
+  const { user } = useAuthStore();
   const [plans, setPlans] = useState<PlanSummary[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchPlans();
-  }, []);
-
-  const fetchPlans = async () => {
-    try {
-      const res = await fetch("/api/user/plans");
-      if (res.ok) {
-        const data = await res.json();
-        setPlans(data.plans || []);
-      } else {
-        setPlans([]);
+    if (!user) return;
+    const controller = new AbortController();
+    async function load() {
+      try {
+        const res = await fetch(`/api/user/plans?user_id=${encodeURIComponent(user!.id)}`, {
+          signal: controller.signal,
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setPlans(data.plans || []);
+        } else {
+          setPlans([]);
+        }
+      } catch (err) {
+        if ((err as { name?: string }).name !== "AbortError") {
+          setError("Couldn't load your plans. Please try again.");
+        }
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error("Failed to fetch plans:", error);
-      setPlans([]);
-    } finally {
-      setLoading(false);
     }
-  };
+    load();
+    return () => controller.abort();
+  }, [user]);
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
@@ -62,13 +70,11 @@ export default function HistoryPage() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-slate-500">Loading your plans...</div>
-      </div>
-    );
-  }
+  const getStatusLabel = (status: string) => {
+    if (status === "plan_ready") return "Ready";
+    if (status === "pending_clinical_review") return "In review";
+    return status.replace(/_/g, " ");
+  };
 
   return (
     <div>
@@ -85,7 +91,25 @@ export default function HistoryPage() {
         </Link>
       </div>
 
-      {plans.length === 0 ? (
+      {loading ? (
+        <div className="space-y-4" aria-busy="true" aria-label="Loading plans">
+          {[0, 1, 2].map((i) => (
+            <Card key={i}>
+              <CardContent className="p-6">
+                <div className="animate-pulse space-y-3">
+                  <div className="h-5 w-1/3 rounded bg-slate-200" />
+                  <div className="h-4 w-2/3 rounded bg-slate-100" />
+                  <div className="h-4 w-1/4 rounded bg-slate-100" />
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : error ? (
+        <Card>
+          <CardContent className="py-8 text-center text-red-600">{error}</CardContent>
+        </Card>
+      ) : plans.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center">
             <Calendar className="h-12 w-12 mx-auto text-slate-300 mb-4" />
@@ -100,44 +124,65 @@ export default function HistoryPage() {
         </Card>
       ) : (
         <div className="space-y-4">
-          {plans.map((plan) => (
-            <Card key={plan.id} className="hover:shadow-md transition-shadow">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-lg font-semibold">Assessment #{plan.id.slice(0, 8)}</h3>
-                      <span className={`text-xs px-2 py-1 rounded-full ${getStatusColor(plan.status)}`}>
-                        {plan.status === "plan_ready" ? "Ready" : plan.status.replace(/_/g, " ")}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-4 text-sm text-slate-500">
-                      <span className="flex items-center gap-1">
-                        <Calendar className="h-4 w-4" />
-                        {formatDate(plan.created_at)}
-                      </span>
-                      {plan.body_region && (
-                        <span className="flex items-center gap-1">
-                          <Activity className="h-4 w-4" />
-                          {plan.body_region}
+          {plans.map((plan) => {
+            const progressPct =
+              plan.total_exercises > 0
+                ? Math.round((plan.exercises_completed / plan.total_exercises) * 100)
+                : 0;
+            return (
+              <Card key={plan.id} className="hover:shadow-md transition-shadow">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between gap-4 flex-wrap">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-3 mb-2 flex-wrap">
+                        <h3 className="text-lg font-semibold">Assessment #{plan.id.slice(0, 8)}</h3>
+                        <span className={`text-xs px-2 py-1 rounded-full ${getStatusColor(plan.status)}`}>
+                          {getStatusLabel(plan.status)}
                         </span>
+                      </div>
+                      <div className="flex items-center gap-4 text-sm text-slate-500 flex-wrap">
+                        <span className="flex items-center gap-1">
+                          <Calendar className="h-4 w-4" aria-hidden />
+                          {formatDate(plan.created_at)}
+                        </span>
+                        {plan.body_region && (
+                          <span className="flex items-center gap-1">
+                            <Activity className="h-4 w-4" aria-hidden />
+                            {plan.body_region}
+                          </span>
+                        )}
+                        <span className="flex items-center gap-1">
+                          <Clock className="h-4 w-4" aria-hidden />
+                          {plan.exercises_completed}/{plan.total_exercises} exercises
+                        </span>
+                      </div>
+                      {plan.total_exercises > 0 && (
+                        <div
+                          className="mt-3 h-1.5 w-full rounded-full bg-slate-100 overflow-hidden"
+                          role="progressbar"
+                          aria-valuenow={progressPct}
+                          aria-valuemin={0}
+                          aria-valuemax={100}
+                          aria-label={`Plan progress: ${progressPct}%`}
+                        >
+                          <div
+                            className="h-full bg-slate-900 transition-all"
+                            style={{ width: `${progressPct}%` }}
+                          />
+                        </div>
                       )}
-                      <span className="flex items-center gap-1">
-                        <Clock className="h-4 w-4" />
-                        {plan.exercises_completed}/{plan.total_exercises} exercises
-                      </span>
                     </div>
+                    <Link href={`/results/${plan.id}`} aria-label={`View plan ${plan.id.slice(0, 8)}`}>
+                      <Button variant="outline">
+                        View Plan
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                      </Button>
+                    </Link>
                   </div>
-                  <Link href={`/results/${plan.id}`}>
-                    <Button variant="outline">
-                      View Plan
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </Button>
-                  </Link>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       )}
     </div>

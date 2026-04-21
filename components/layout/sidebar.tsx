@@ -10,7 +10,7 @@ import { useRouter } from "next/navigation";
 
 const navItems = [
   { href: "/dashboard", icon: Home, label: "Dashboard" },
-  { href: "/dashboard/intake", icon: Plus, label: "New Assessment" },
+  { href: "/assess/method", icon: Plus, label: "New Assessment" },
   { href: "/dashboard/history", icon: History, label: "History" },
   { href: "/dashboard/settings", icon: Settings, label: "Settings" },
 ];
