@@ -1,25 +1,33 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Activity, FileText, MessageSquare } from "lucide-react";
+import { ArrowRight, Activity, FileText, MessageSquare, Sparkles } from "lucide-react";
 
 export default function HomePage() {
   return (
     <main>
       {/* Hero */}
-      <section className="py-20 bg-gradient-to-b from-slate-50 to-white">
+      <section className="py-24 bg-gradient-to-b from-slate-50 to-white">
         <div className="container mx-auto px-4 text-center">
-          <h1 className="text-5xl font-bold mb-6">
-            Personalized Exercise Plans for Your Recovery
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-100 text-slate-600 text-sm mb-8">
+            <Sparkles className="h-4 w-4" />
+            AI-Powered Physiotherapy
+          </div>
+          <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-slate-900 via-slate-700 to-slate-900 bg-clip-text text-transparent">
+            Joints.AI
           </h1>
-          <p className="text-xl text-slate-600 mb-8 max-w-2xl mx-auto">
-            Tell us about your pain or injury, and we&apos;ll create a custom physiotherapy
-            program with videos and instructions to help you recover.
+          <p className="text-xl md:text-2xl text-slate-600 mb-4 max-w-2xl mx-auto">
+            Personalized Exercise Plans for Your Recovery
+          </p>
+          <p className="text-lg text-slate-500 mb-10 max-w-xl mx-auto">
+            Tell us about your pain or injury, and our AI will create a custom physiotherapy
+            program with videos and instructions to help you recover faster.
           </p>
           <Link href="/signup">
-            <Button size="lg" className="text-lg px-8">
+            <Button size="lg" className="text-lg px-8 bg-slate-900 hover:bg-slate-800">
               Start Your Recovery <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
           </Link>
+          <p className="text-sm text-slate-400 mt-4">Free to start &middot; No credit card required</p>
         </div>
       </section>
 

@@ -37,4 +37,4 @@ def configure_logging() -> None:
     )
 
 
-log = structlog.get_logger("techphysio")
+log = structlog.get_logger("joints_ai")

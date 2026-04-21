@@ -20,18 +20,18 @@ from app.middleware import CorrelationMiddleware
 @asynccontextmanager
 async def lifespan(_: FastAPI) -> AsyncIterator[None]:
     configure_logging()
-    log.info("techphysio_starting", llm=settings.llm_configured, vlm=settings.vlm_configured)
+    log.info("joints_ai_starting", llm=settings.llm_configured, vlm=settings.vlm_configured)
     # Warm up the vector store + seed corpus on cold start so the first
     # user request doesn't block on embedding model download.
     store = get_vector_store()
     seeded = store.seed_if_empty()
     log.info("vector_store_ready", newly_seeded=seeded)
     yield
-    log.info("techphysio_shutting_down")
+    log.info("joints_ai_shutting_down")
 
 
 app = FastAPI(
-    title="TechPhysio Orchestrator",
+    title="Joints.AI Orchestrator",
     version="0.1.0",
     description=(
         "Multi-agent pipeline: Triage (deterministic red-flag gate) → Extractor "

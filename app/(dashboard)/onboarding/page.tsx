@@ -50,7 +50,7 @@ export default function OnboardingPage() {
       <div className="max-w-lg w-full">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold">Welcome to Joints.AI</h1>
-          <p className="text-slate-500 mt-2">Let's get to know you better</p>
+          <p className="text-slate-500 mt-2">Let&apos;s get to know you better</p>
         </div>
 
         <div className="flex items-center justify-center gap-2 mb-8">
@@ -146,7 +146,7 @@ export default function OnboardingPage() {
                 <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <User className="h-8 w-8 text-green-600" />
                 </div>
-                <h2 className="text-xl font-semibold mb-2">You're all set!</h2>
+                <h2 className="text-xl font-semibold mb-2">You&apos;re all set!</h2>
                 <p className="text-slate-500 mb-6">
                   Your profile has been saved. Ready to get your first exercise plan?
                 </p>

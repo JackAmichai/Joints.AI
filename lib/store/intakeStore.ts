@@ -122,7 +122,7 @@ export const useIntakeStore = create<IntakeState>()(
         })
     }),
     {
-      name: "techphysio-intake-draft",
+      name: "joints-ai-intake-draft",
       // sessionStorage so PHI does not outlive the tab
       storage: createJSONStorage(() =>
         typeof window !== "undefined" ? window.sessionStorage : (undefined as unknown as Storage)

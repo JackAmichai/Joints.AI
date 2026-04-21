@@ -22,7 +22,7 @@ class Settings(BaseSettings):
     port: int = 8000
     cors_origins: list[str] = Field(default_factory=lambda: ["http://localhost:3000"])
 
-    db_url: str = "sqlite:///./techphysio.db"
+    db_url: str = "sqlite:///./joints_ai.db"
     file_storage_dir: Path = Path("./uploads")
 
     chroma_dir: Path = Path("./chroma")

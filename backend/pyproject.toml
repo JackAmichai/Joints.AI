@@ -1,5 +1,5 @@
 [project]
-name = "techphysio-backend"
+name = "joints-ai-backend"
 version = "0.1.0"
 description = "TechPhysio agentic orchestrator — triage, extractor, RAG retriever."
 requires-python = ">=3.11"
