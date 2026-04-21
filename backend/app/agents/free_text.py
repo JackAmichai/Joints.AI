@@ -7,9 +7,6 @@ just one message in, structured data out.
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
-from typing import Optional
-
 from pydantic import BaseModel, Field
 
 from app.schemas.body import BodyRegion
@@ -25,11 +22,11 @@ from app.schemas.intake import (
 class ExtractedIntake(BaseModel):
     """Structured extraction from free text."""
 
-    primary_location: Optional[BodyRegion] = None
+    primary_location: BodyRegion | None = None
     pain_qualities: list[PainQuality] = Field(default_factory=list)
-    severity: Optional[int] = None
-    onset: Optional[PainOnset] = None
-    duration_days: Optional[int] = None
+    severity: int | None = None
+    onset: PainOnset | None = None
+    duration_days: int | None = None
     aggravators: list[Aggravator] = Field(default_factory=list)
     relievers: list[Reliever] = Field(default_factory=list)
     confidence: float = 0.0

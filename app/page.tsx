@@ -84,7 +84,7 @@ export default function HomePage() {
       {/* Footer */}
       <footer className="py-8 border-t">
         <div className="container mx-auto px-4 text-center text-slate-500 text-sm">
-          <p>© 2026 TechPhysio. All rights reserved.</p>
+          <p>© 2026 Joints.AI. All rights reserved.</p>
         </div>
       </footer>
     </main>

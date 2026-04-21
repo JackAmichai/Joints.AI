@@ -12,7 +12,9 @@ dependencies = [
     "chromadb>=0.5.15",
     "python-multipart>=0.0.12",
     "aiofiles>=24.1.0",
-    "structlog>=24.4.0"
+    "structlog>=24.4.0",
+    "slowapi>=0.1.9",
+    "redis>=5.2.0",
 ]
 
 [project.optional-dependencies]

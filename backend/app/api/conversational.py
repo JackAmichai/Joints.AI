@@ -6,7 +6,6 @@ from app.agents.conversational import (
     QuestionState,
     get_conversational_agent,
 )
-from app.schemas.intake import SubjectivePainInput
 
 router = APIRouter(prefix="/conversational", tags=["conversational"])
 

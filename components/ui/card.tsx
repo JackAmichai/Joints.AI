@@ -63,3 +63,15 @@ export const CardFooter = React.forwardRef<
   />
 ));
 CardFooter.displayName = "CardFooter";
+
+export const CardDescription = React.forwardRef<
+  HTMLParagraphElement,
+  React.HTMLAttributes<HTMLParagraphElement>
+>(({ className, ...props }, ref) => (
+  <p
+    ref={ref}
+    className={clsx("text-sm text-slate-500", className)}
+    {...props}
+  />
+));
+CardDescription.displayName = "CardDescription";

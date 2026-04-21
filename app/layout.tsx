@@ -3,7 +3,7 @@ import "./globals.css";
 import { Header } from "@/components/layout/header";
 
 export const metadata: Metadata = {
-  title: "TechPhysio - Personalized Physiotherapy Exercises",
+  title: "Joints.AI - Personalized Physiotherapy Exercises",
   description: "Get personalized exercise programs based on your injury or pain. Professional physiotherapy guidance at home.",
 };
 

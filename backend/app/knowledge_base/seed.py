@@ -444,7 +444,3 @@ SEED_EXERCISES: list[SeedExercise] = [
         contraindication_tags=["wrist_fracture", "post_carpal_tunnel_release"],
     ),
 ]
-"Clicking"],
-        contraindication_tags=["wrist_fracture", "post_carpal_tunnel_release"],
-    ),
-]

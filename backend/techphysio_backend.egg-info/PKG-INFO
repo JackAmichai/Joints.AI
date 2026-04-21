@@ -12,6 +12,8 @@ Requires-Dist: chromadb>=0.5.15
 Requires-Dist: python-multipart>=0.0.12
 Requires-Dist: aiofiles>=24.1.0
 Requires-Dist: structlog>=24.4.0
+Requires-Dist: slowapi>=0.1.9
+Requires-Dist: redis>=5.2.0
 Provides-Extra: dev
 Requires-Dist: pytest>=8.3.0; extra == "dev"
 Requires-Dist: pytest-asyncio>=0.24.0; extra == "dev"

@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Depends
-from pydantic import BaseModel
-from datetime import UTC, datetime
 import uuid
+from datetime import UTC, datetime
+
+from fastapi import APIRouter
+from pydantic import BaseModel
 
 router = APIRouter(prefix="/progress", tags=["progress"])
 

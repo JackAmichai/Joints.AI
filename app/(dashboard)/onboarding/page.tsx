@@ -49,7 +49,7 @@ export default function OnboardingPage() {
     <div className="min-h-screen bg-white flex items-center justify-center p-4">
       <div className="max-w-lg w-full">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold">Welcome to TechPhysio</h1>
+          <h1 className="text-3xl font-bold">Welcome to Joints.AI</h1>
           <p className="text-slate-500 mt-2">Let's get to know you better</p>
         </div>
 

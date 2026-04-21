@@ -29,7 +29,7 @@ export function Sidebar() {
   return (
     <aside className="w-64 border-r bg-slate-50 p-4">
       <div className="mb-8">
-        <h1 className="text-xl font-bold">TechPhysio</h1>
+        <h1 className="text-xl font-bold">Joints.AI</h1>
       </div>
       <nav className="space-y-1">
         {navItems.map((item) => (

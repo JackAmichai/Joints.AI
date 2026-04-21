@@ -1,6 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi.responses import JSONResponse
+from slowapi import Limiter
+from slowapi.errors import RateLimitExceeded
+from slowapi.util import get_remote_address
 
 from app.db.store import SubmissionStore, get_submission_store
+from app.errors import ErrorCode, envelope
 from app.orchestrator import Orchestrator, get_orchestrator
 from app.schemas.intake import (
     IntakeSubmission,
@@ -10,9 +15,13 @@ from app.schemas.intake import (
 
 router = APIRouter(prefix="/intake", tags=["intake"])
 
+limiter = Limiter(key_func=get_remote_address)
+
 
 @router.post("/submit", response_model=SubmitIntakeResponse, response_model_by_alias=True)
+@limiter.limit("10/minute")
 async def submit_intake(
+    request: Request,
     req: SubmitIntakeRequest,
     orchestrator: Orchestrator = Depends(get_orchestrator),
 ) -> SubmitIntakeResponse:
