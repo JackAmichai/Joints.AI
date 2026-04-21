@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
 import { authenticateRequest, isValidUUID, sanitizeString } from "@/lib/api/auth";
 
 export async function PUT(request: NextRequest) {
@@ -20,7 +21,7 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: "Server configuration error" }, { status: 500 });
     }
 
-    const supabase = require("@supabase/supabase-js").createClient(supabaseUrl, supabaseKey);
+    const supabase = createClient(supabaseUrl, supabaseKey);
 
     const updates: Record<string, unknown> = {
       updated_at: new Date().toISOString(),
@@ -73,7 +74,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Server configuration error" }, { status: 500 });
   }
 
-  const supabase = require("@supabase/supabase-js").createClient(supabaseUrl, supabaseKey);
+  const supabase = createClient(supabaseUrl, supabaseKey);
 
   const { data, error } = await supabase
     .from("profiles")
