@@ -1,8 +1,10 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, History, TrendingUp, Target, Flame, CheckCircle } from "lucide-react";
+import { useAuthStore } from "@/store/authStore";
+import { Plus, History, TrendingUp, Target, Flame, CheckCircle, ArrowRight } from "lucide-react";
 
 interface Stats {
   totalExercises: number;
@@ -11,15 +13,67 @@ interface Stats {
   plansCompleted: number;
 }
 
-export default function DashboardPage() {
-  const stats: Stats = {
-    totalExercises: 24,
-    completedExercises: 18,
-    currentStreak: 3,
-    plansCompleted: 2,
-  };
+interface PlanSummary {
+  id: string;
+  created_at: string;
+  status: string;
+  exercises_completed: number;
+  total_exercises: number;
+}
 
-  const progressPercent = Math.round((stats.completedExercises / stats.totalExercises) * 100);
+export default function DashboardPage() {
+  const { user } = useAuthStore();
+  const [stats, setStats] = useState<Stats>({
+    totalExercises: 0,
+    completedExercises: 0,
+    currentStreak: 0,
+    plansCompleted: 0,
+  });
+  const [recentPlans, setRecentPlans] = useState<PlanSummary[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user) return;
+    const controller = new AbortController();
+    const userId = user.id;
+
+    async function loadData() {
+      try {
+        const res = await fetch(`/api/user/plans?user_id=${encodeURIComponent(userId)}`, {
+          signal: controller.signal,
+        });
+        if (res.ok) {
+          const data = await res.json();
+          const plans = data.plans || [];
+          setRecentPlans(plans.slice(0, 3));
+
+          const totalEx = plans.reduce((acc: number, p: PlanSummary) => acc + (p.total_exercises || 0), 0);
+          const completedEx = plans.reduce((acc: number, p: PlanSummary) => acc + (p.exercises_completed || 0), 0);
+          const completedPlans = plans.filter((p: PlanSummary) => p.status === "plan_completed").length;
+
+          setStats({
+            totalExercises: totalEx,
+            completedExercises: completedEx,
+            currentStreak: Math.floor(completedEx / 7),
+            plansCompleted: completedPlans,
+          });
+        }
+      } catch (err) {
+        if ((err as { name?: string }).name !== "AbortError") {
+          console.error("Failed to load stats", err);
+        }
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadData();
+    return () => controller.abort();
+  }, [user]);
+
+  const progressPercent = stats.totalExercises > 0
+    ? Math.round((stats.completedExercises / stats.totalExercises) * 100)
+    : 0;
 
   return (
     <div>
@@ -160,11 +214,37 @@ export default function DashboardPage() {
       </Card>
 
       <h2 className="text-xl font-semibold mb-4">Recent Plans</h2>
-      <Card>
-        <CardContent className="p-6">
-          <p className="text-slate-500">No plans yet. Start a new assessment to get your personalized exercise program.</p>
-        </CardContent>
-      </Card>
+      {loading ? (
+        <Card>
+          <CardContent className="p-6">
+            <p className="text-slate-500">Loading...</p>
+          </CardContent>
+        </Card>
+      ) : recentPlans.length === 0 ? (
+        <Card>
+          <CardContent className="p-6">
+            <p className="text-slate-500">No plans yet. Start a new assessment to get your personalized exercise program.</p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="space-y-3">
+          {recentPlans.map((plan) => (
+            <Link key={plan.id} href={`/results/${plan.id}`}>
+              <Card className="hover:shadow-md transition-shadow">
+                <CardContent className="p-4 flex items-center justify-between">
+                  <div>
+                    <p className="font-medium">Assessment #{plan.id.slice(0, 8)}</p>
+                    <p className="text-sm text-slate-500">
+                      {plan.exercises_completed}/{plan.total_exercises} exercises completed
+                    </p>
+                  </div>
+                  <ArrowRight className="h-5 w-5 text-slate-400" />
+                </CardContent>
+              </Card>
+            </Link>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

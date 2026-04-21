@@ -9,6 +9,8 @@ interface User {
   full_name?: string;
   age?: number;
   fitness_level?: string;
+  known_conditions?: string[];
+  onboarding_complete?: boolean;
 }
 
 interface AuthState {

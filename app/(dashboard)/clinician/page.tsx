@@ -1,11 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { useAuthStore } from "@/store/authStore";
+import { useToast } from "@/components/ui/toast";
 import { 
   CheckCircle, XCircle, Clock, Eye, 
   AlertTriangle, FileText, ChevronRight, Search 
@@ -35,15 +38,23 @@ interface Submission {
 }
 
 export default function ClinicianDashboard() {
+  const router = useRouter();
+  const { user } = useAuthStore();
+  const { toast } = useToast();
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [selectedSubmission, setSelectedSubmission] = useState<Submission | null>(null);
   const [reviewNote, setReviewNote] = useState("");
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"pending" | "reviewed">("pending");
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!user) {
+      router.push("/login");
+      return;
+    }
     fetchSubmissions();
-  }, []);
+  }, [user, router]);
 
   const fetchSubmissions = async () => {
     try {
@@ -60,32 +71,50 @@ export default function ClinicianDashboard() {
   };
 
   const handleApprove = async (submissionId: string) => {
+    setActionLoading(submissionId);
     try {
-      await fetch(`/api/clinician/submissions/${submissionId}/approve`, {
+      const res = await fetch(`/api/clinician/submissions/${submissionId}/approve`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ note: reviewNote }),
       });
-      fetchSubmissions();
-      setSelectedSubmission(null);
-      setReviewNote("");
+      if (res.ok) {
+        toast("Plan approved and released", "success");
+        fetchSubmissions();
+        setSelectedSubmission(null);
+        setReviewNote("");
+      } else {
+        toast("Failed to approve", "error");
+      }
     } catch (error) {
       console.error("Failed to approve:", error);
+      toast("Failed to approve", "error");
+    } finally {
+      setActionLoading(null);
     }
   };
 
   const handleReject = async (submissionId: string) => {
+    setActionLoading(submissionId);
     try {
-      await fetch(`/api/clinician/submissions/${submissionId}/reject`, {
+      const res = await fetch(`/api/clinician/submissions/${submissionId}/reject`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ note: reviewNote }),
       });
-      fetchSubmissions();
-      setSelectedSubmission(null);
-      setReviewNote("");
+      if (res.ok) {
+        toast("Submission rejected", "info");
+        fetchSubmissions();
+        setSelectedSubmission(null);
+        setReviewNote("");
+      } else {
+        toast("Failed to reject", "error");
+      }
     } catch (error) {
       console.error("Failed to reject:", error);
+      toast("Failed to reject", "error");
+    } finally {
+      setActionLoading(null);
     }
   };
 
@@ -257,15 +286,17 @@ export default function ClinicianDashboard() {
                       <Button 
                         variant="destructive" 
                         onClick={() => handleReject(selectedSubmission.id)}
+                        disabled={actionLoading !== null}
                       >
                         <XCircle className="mr-2 h-4 w-4" />
-                        Reject
+                        {actionLoading === selectedSubmission.id ? "Rejecting..." : "Reject"}
                       </Button>
                       <Button 
                         onClick={() => handleApprove(selectedSubmission.id)}
+                        disabled={actionLoading !== null}
                       >
                         <CheckCircle className="mr-2 h-4 w-4" />
-                        Approve & Release
+                        {actionLoading === selectedSubmission.id ? "Approving..." : "Approve & Release"}
                       </Button>
                     </div>
                   </div>

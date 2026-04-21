@@ -6,6 +6,8 @@ import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useAuthStore } from "@/store/authStore";
+import { useToast } from "@/components/ui/toast";
 import { ArrowRight, User, Check, Activity, Zap } from "lucide-react";
 
 interface OnboardingData {
@@ -24,22 +26,45 @@ const FITNESS_OPTIONS = [
 
 export default function OnboardingPage() {
   const router = useRouter();
+  const { user, setUser } = useAuthStore();
+  const { toast } = useToast();
   const [step, setStep] = useState(1);
   const [data, setData] = useState<OnboardingData>({
-    fullName: "",
-    age: "",
-    fitnessLevel: "",
+    fullName: user?.full_name || "",
+    age: user?.age?.toString() || "",
+    fitnessLevel: user?.fitness_level || "",
     knownConditions: [],
   });
   const [loading, setLoading] = useState(false);
 
   const handleSave = async () => {
+    if (!user) return;
     setLoading(true);
     try {
-      localStorage.setItem("onboarding_complete", "true");
-      router.push("/dashboard");
+      const res = await fetch("/api/user/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user_id: user.id,
+          full_name: data.fullName,
+          age: data.age,
+          fitness_level: data.fitnessLevel,
+          known_conditions: data.knownConditions,
+        }),
+      });
+
+      if (res.ok) {
+        localStorage.setItem("onboarding_complete", "true");
+        setUser({ ...user, full_name: data.fullName });
+        toast("Profile saved successfully", "success");
+        router.push("/dashboard");
+      } else {
+        const err = await res.json();
+        toast(err.error || "Failed to save profile", "error");
+      }
     } catch (error) {
       console.error("Onboarding save error:", error);
+      toast("Failed to save profile", "error");
     } finally {
       setLoading(false);
     }

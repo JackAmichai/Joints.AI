@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { PlanViewer } from "@/components/exercises/PlanViewer";
 import { AlertTriangle, Clock, ShieldCheck, RefreshCw } from "lucide-react";
+import { useAuthStore } from "@/store/authStore";
+import { useToast } from "@/components/ui/toast";
 
 import {
   fetchSubmission as fetchSubmissionApi,
@@ -21,10 +23,31 @@ interface ResultsClientProps {
 }
 
 export function ResultsClient({ submissionId, halted }: ResultsClientProps) {
+  const { user } = useAuthStore();
+  const { toast } = useToast();
   const [submission, setSubmission] = useState<IntakeSubmission | null>(null);
   const [loading, setLoading] = useState(!halted);
   const [error, setError] = useState<string | null>(null);
   const [lastFetch, setLastFetch] = useState<Date>(new Date());
+
+  const handleExerciseComplete = useCallback(async (exerciseId: string) => {
+    if (!user) return;
+    try {
+      await fetch("/api/progress/complete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user_id: user.id,
+          submission_id: submissionId,
+          exercise_id: exerciseId,
+        }),
+      });
+      toast("Exercise marked as complete", "success");
+    } catch (err) {
+      console.error("Failed to record exercise completion", err);
+      toast("Could not save progress", "error");
+    }
+  }, [user, submissionId, toast]);
 
   const fetchSubmission = useCallback(async () => {
     try {
@@ -204,7 +227,7 @@ export function ResultsClient({ submissionId, halted }: ResultsClientProps) {
         plan={submission.plan}
         onPrint={handlePrint}
         onDownloadPdf={handleDownloadPdf}
-        onExerciseComplete={(id) => console.log("Completed:", id)}
+        onExerciseComplete={handleExerciseComplete}
       />
     </div>
   );

@@ -29,8 +29,21 @@ export default function SettingsPage() {
     if (!user) return;
     setSaving(true);
     try {
-      setUser({ ...user, full_name: name.trim() });
-      toast("Profile saved", "success");
+      const res = await fetch("/api/user/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user_id: user.id,
+          full_name: name.trim(),
+        }),
+      });
+
+      if (res.ok) {
+        setUser({ ...user, full_name: name.trim() });
+        toast("Profile saved", "success");
+      } else {
+        toast("Could not save. Please try again.", "error");
+      }
     } catch (err) {
       toast("Could not save. Please try again.", "error");
     } finally {
