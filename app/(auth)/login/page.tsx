@@ -1,10 +1,21 @@
 import { LoginForm } from "@/components/auth/login-form";
+import Link from "next/link";
+import { Activity } from "lucide-react";
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="w-full max-w-md p-8">
-        <h1 className="text-3xl font-bold text-center mb-8">Welcome Back</h1>
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        <div className="text-center mb-8">
+          <Link href="/dashboard" className="inline-flex items-center gap-2 mb-8">
+            <div className="w-12 h-12 bg-slate-900 rounded-xl flex items-center justify-center">
+              <Activity className="h-6 w-6 text-white" />
+            </div>
+            <span className="text-2xl font-bold text-slate-900">Joints.AI</span>
+          </Link>
+          <h1 className="text-3xl font-bold text-slate-900 mb-2">Welcome back</h1>
+          <p className="text-slate-500">Sign in to continue your recovery</p>
+        </div>
         <LoginForm />
       </div>
     </div>
