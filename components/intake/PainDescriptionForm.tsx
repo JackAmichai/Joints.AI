@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useIntakeStore } from "@/lib/store/intakeStore";
 import { PillGroup } from "./PillGroup";
 import { IntensitySlider } from "./IntensitySlider";
@@ -12,8 +12,11 @@ import {
   RELIEVER_OPTIONS
 } from "@/lib/constants/painOptions";
 import { scanForRedFlags } from "@/lib/types/redFlags";
+import { Button } from "@/components/ui/button";
+import { Sparkles, Loader2 } from "lucide-react";
 
 export function PainDescriptionForm() {
+  const [aiLoading, setAiLoading] = useState(false);
   const {
     subjective,
     setIntensity,
@@ -89,16 +92,70 @@ export function PainDescriptionForm() {
       />
 
       <div className="mt-8">
-        <label
-          htmlFor="freeText"
-          className="block text-sm font-medium text-ink"
-        >
-          In your own words
-        </label>
-        <p className="mt-1 text-sm text-ink-muted">
-          Anything the options above missed. Be specific — when it started,
-          what you were doing, how it behaves.
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <label
+              htmlFor="freeText"
+              className="block text-sm font-medium text-ink"
+            >
+              In your own words
+            </label>
+            <p className="mt-1 text-sm text-ink-muted">
+              Describe your pain, or click "AI Parse" to extract automatically
+            </p>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={async () => {
+              if (!subjective.freeText.trim()) return;
+              setAiLoading(true);
+              try {
+                const res = await fetch("/api/free-text/parse", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ text: subjective.freeText }),
+                });
+                const data = await res.json();
+                
+                if (data.primary_location) {
+                  // Would need to import and use body region mapping
+                }
+                if (data.severity) setIntensity(data.severity);
+                if (data.pain_qualities) {
+                  data.pain_qualities.forEach((q: string) => {
+                    try { toggleQuality(q as never); } catch {}
+                  });
+                }
+                if (data.onset) setOnset(data.onset as never);
+                if (data.duration_days) setDurationDays(data.duration_days);
+                if (data.aggravators) {
+                  data.aggravators.forEach((a: string) => {
+                    try { toggleAggravator(a as never); } catch {}
+                  });
+                }
+                if (data.relievers) {
+                  data.relievers.forEach((r: string) => {
+                    try { toggleReliever(r as never); } catch {}
+                  });
+                }
+              } catch (err) {
+                console.error("AI parse failed:", err);
+              } finally {
+                setAiLoading(false);
+              }
+            }}
+            disabled={aiLoading || !subjective.freeText.trim()}
+          >
+            {aiLoading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Sparkles className="h-4 w-4" />
+            )}
+            <span className="ml-2">AI Parse</span>
+          </Button>
+        </div>
         <textarea
           id="freeText"
           value={subjective.freeText}

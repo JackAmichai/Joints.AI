@@ -60,3 +60,13 @@ __all__ = [
     "TriageResult",
     "RehabPlan",
 ]
+
+
+# Intake's forward-ref resolution needs agents.py fully loaded. When this
+# package is imported top-level, agents loads first (line 1 above) and
+# intake.py's own bottom-of-file _rebuild() no-ops to avoid a partial-
+# initialization ImportError. Re-run it now that both modules exist.
+from app.schemas.intake import _rebuild as _rebuild_intake_refs  # noqa: E402
+
+_rebuild_intake_refs()
+del _rebuild_intake_refs

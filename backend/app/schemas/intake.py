@@ -160,12 +160,21 @@ class SubmitIntakeResponse(BaseModel):
 
 
 # Rebuild to resolve forward refs once the agents module has loaded.
+# Called both here (for the `from app.schemas.intake import X` path) and
+# again at the bottom of `app/schemas/__init__.py` (for the package-load
+# path where schemas.agents is loaded BEFORE intake.py's bottom runs,
+# which would otherwise hit a circular ImportError mid-initialization).
 def _rebuild() -> None:
-    from app.schemas.agents import (  # noqa: F401
-        ExtractedClinicalPayload,
-        RehabPlan,
-        TriageResult,
-    )
+    try:
+        from app.schemas.agents import (  # noqa: F401
+            ExtractedClinicalPayload,
+            RehabPlan,
+            TriageResult,
+        )
+    except ImportError:
+        # agents.py is still partway through initialization — __init__.py
+        # will call us again after it finishes loading.
+        return
 
     IntakeSubmission.model_rebuild()
     SubmitIntakeResponse.model_rebuild()
