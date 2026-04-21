@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuthStore } from "@/store/authStore";
+import { authedFetch } from "@/lib/api/authedFetch";
 import { useToast } from "@/components/ui/toast";
 import { ArrowRight, User, Check, Activity, Zap } from "lucide-react";
 
@@ -41,11 +42,9 @@ export default function OnboardingPage() {
     if (!user) return;
     setLoading(true);
     try {
-      const res = await fetch("/api/user/profile", {
+      const res = await authedFetch("/api/user/profile", {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          user_id: user.id,
           full_name: data.fullName,
           age: data.age,
           fitness_level: data.fitnessLevel,
@@ -55,11 +54,16 @@ export default function OnboardingPage() {
 
       if (res.ok) {
         localStorage.setItem("onboarding_complete", "true");
-        setUser({ ...user, full_name: data.fullName });
+        setUser({
+          ...user,
+          full_name: data.fullName,
+          age: data.age ? parseInt(data.age, 10) : undefined,
+          fitness_level: data.fitnessLevel || undefined,
+        });
         toast("Profile saved successfully", "success");
         router.push("/dashboard");
       } else {
-        const err = await res.json();
+        const err = await res.json().catch(() => ({}));
         toast(err.error || "Failed to save profile", "error");
       }
     } catch (error) {

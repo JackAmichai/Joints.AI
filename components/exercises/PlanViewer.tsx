@@ -176,7 +176,7 @@ export function PlanViewer({
                       key={exercise.id}
                       {...exercise}
                       completed={completedExercises.has(exercise.id)}
-                      onStart={() => markComplete(exercise.id)}
+                      onComplete={() => markComplete(exercise.id)}
                     />
                   ))}
                 </div>

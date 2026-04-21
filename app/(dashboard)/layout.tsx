@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
 import { supabase } from "@/lib/supabase/client";
 import { Sidebar } from "@/components/layout/sidebar";
+import { FeedbackWidget } from "@/components/layout/feedback-widget";
 
 export default function DashboardLayout({
   children,
@@ -40,6 +41,7 @@ export default function DashboardLayout({
           {children}
         </div>
       </main>
+      <FeedbackWidget />
     </div>
   );
 }

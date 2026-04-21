@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuthStore } from "@/store/authStore";
 import { supabase } from "@/lib/supabase/client";
+import { authedFetch } from "@/lib/api/authedFetch";
 import { useToast } from "@/components/ui/toast";
 import { User, Bell, Shield, Trash2, LogOut, Save } from "lucide-react";
 
@@ -29,11 +30,9 @@ export default function SettingsPage() {
     if (!user) return;
     setSaving(true);
     try {
-      const res = await fetch("/api/user/profile", {
+      const res = await authedFetch("/api/user/profile", {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          user_id: user.id,
           full_name: name.trim(),
         }),
       });

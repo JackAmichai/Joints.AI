@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { clsx } from "clsx";
-import { Home, Plus, History, Settings, LogOut, Activity, Menu, X } from "lucide-react";
+import { Home, Plus, History, Settings, LogOut, Activity, Menu, X, Stethoscope } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
 import { supabase } from "@/lib/supabase/client";
 
@@ -12,6 +12,7 @@ const navItems = [
   { href: "/dashboard", icon: Home, label: "Dashboard" },
   { href: "/assess/method", icon: Plus, label: "New Assessment" },
   { href: "/dashboard/history", icon: History, label: "History" },
+  { href: "/dashboard/therapists", icon: Stethoscope, label: "Therapists" },
   { href: "/dashboard/settings", icon: Settings, label: "Settings" },
 ];
 
