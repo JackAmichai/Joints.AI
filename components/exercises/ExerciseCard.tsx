@@ -57,13 +57,13 @@ function parseTargetSeconds(dose: string): number | null {
   const lc = dose.toLowerCase();
   // Minutes: "2 min", "1 minute", "1.5 minutes"
   const minMatch = lc.match(/(\d+(?:\.\d+)?)\s*(?:min(?:ute)?s?)\b/);
-  if (minMatch) {
+  if (minMatch?.[1]) {
     const m = parseFloat(minMatch[1]);
     if (!isNaN(m) && m > 0 && m < 30) return Math.round(m * 60);
   }
   // Seconds: "30 sec", "30 seconds", "30s hold"
   const secMatch = lc.match(/(\d+)\s*(?:s(?:ec(?:ond)?s?)?\b|"\s|'\s)/);
-  if (secMatch) {
+  if (secMatch?.[1]) {
     const s = parseInt(secMatch[1], 10);
     if (!isNaN(s) && s >= 3 && s <= 600) return s;
   }
