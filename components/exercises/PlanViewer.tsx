@@ -5,7 +5,8 @@ import { ExerciseCard } from "./ExerciseCard";
 import { ProgressTracker } from "./ProgressTracker";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Printer, Download, ChevronDown, ChevronUp, Play } from "lucide-react";
+import { useToast } from "@/components/ui/toast";
+import { Printer, Download, ChevronDown, ChevronUp, Share2, Check as CheckIcon } from "lucide-react";
 
 interface Exercise {
   id: string;
@@ -72,6 +73,7 @@ export function PlanViewer({
   onPrint,
   onDownloadPdf,
 }: PlanViewerProps) {
+  const { toast } = useToast();
   const [expandedPhases, setExpandedPhases] = useState<Record<string, boolean>>(
     () => ({
       isometric_stabilization: true,
@@ -82,6 +84,36 @@ export function PlanViewer({
   const [completedExercises, setCompletedExercises] = useState<Set<string>>(
     new Set()
   );
+  const [copied, setCopied] = useState(false);
+
+  const handleShare = async () => {
+    // The URL itself is gated by auth + HITL checks on the server — sharing
+    // the link doesn't leak the plan. It just saves the user the hassle of
+    // pasting a long UUID path when they want a clinician or partner to see
+    // what they've been assigned.
+    const url = typeof window !== "undefined" ? window.location.href : "";
+    // Prefer the native share sheet on mobile when available; fall back to
+    // clipboard everywhere else (and gracefully degrade if clipboard is
+    // blocked by the browser's permissions).
+    const nav = typeof navigator !== "undefined" ? navigator : null;
+    try {
+      if (nav && "share" in nav && typeof nav.share === "function") {
+        await nav.share({ title: "My Joints.AI plan", url });
+        return;
+      }
+    } catch {
+      // User canceled the share sheet — treat as no-op, not an error.
+      return;
+    }
+    try {
+      await nav?.clipboard?.writeText(url);
+      setCopied(true);
+      toast("Link copied to clipboard", "success");
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast("Could not copy — long-press the URL to copy manually", "error");
+    }
+  };
 
   const togglePhase = (phase: string) => {
     setExpandedPhases((prev) => ({ ...prev, [phase]: !prev[phase] }));
@@ -112,15 +144,23 @@ export function PlanViewer({
         </div>
       )}
 
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="text-xl font-bold">Your Exercise Plan</h2>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={onPrint}>
-            <Printer className="mr-2 h-4 w-4" />
+        <div className="flex flex-wrap gap-2 print:hidden">
+          <Button variant="outline" size="sm" onClick={handleShare} aria-label="Share plan link">
+            {copied ? (
+              <CheckIcon className="mr-2 h-4 w-4 text-accent" aria-hidden />
+            ) : (
+              <Share2 className="mr-2 h-4 w-4" aria-hidden />
+            )}
+            {copied ? "Copied" : "Share"}
+          </Button>
+          <Button variant="outline" size="sm" onClick={onPrint} aria-label="Print plan">
+            <Printer className="mr-2 h-4 w-4" aria-hidden />
             Print
           </Button>
-          <Button variant="outline" size="sm" onClick={onDownloadPdf}>
-            <Download className="mr-2 h-4 w-4" />
+          <Button variant="outline" size="sm" onClick={onDownloadPdf} aria-label="Open printable PDF view">
+            <Download className="mr-2 h-4 w-4" aria-hidden />
             PDF
           </Button>
         </div>

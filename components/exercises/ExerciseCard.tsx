@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { clsx } from "clsx";
-import { AlertCircle, Check, Clock, Pause, Play, RotateCcw } from "lucide-react";
+import { AlertCircle, Check, Clock, Pause, Play, RotateCcw, Volume2, VolumeX } from "lucide-react";
 import type { ExercisePhase } from "@/lib/types/agents";
 
 /**
@@ -14,6 +14,9 @@ import type { ExercisePhase } from "@/lib/types/agents";
  *  - Start ↔ Mark Complete are now distinct actions. Start opens an inline
  *    stopwatch so the user can time their set; Mark Complete is the explicit
  *    progress marker.
+ *  - When we can parse a target hold/duration out of the dose string, the
+ *    stopwatch emits a soft audio chime + pulse animation at that time so
+ *    the user doesn't have to watch the screen during a set.
  */
 interface ExerciseCardProps {
   id: string;
@@ -42,6 +45,69 @@ function formatSeconds(total: number) {
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
+/**
+ * Best-effort extraction of a hold/duration target in seconds from a dose
+ * string. Dose strings are clinician-authored free text, so we're generous
+ * about format ("30 sec hold", "hold 45s", "2 min", "1 minute"). Returns
+ * null when no duration can be inferred — in that case the timer is still
+ * useful as a plain stopwatch but won't fire an end-cue.
+ */
+function parseTargetSeconds(dose: string): number | null {
+  if (!dose) return null;
+  const lc = dose.toLowerCase();
+  // Minutes: "2 min", "1 minute", "1.5 minutes"
+  const minMatch = lc.match(/(\d+(?:\.\d+)?)\s*(?:min(?:ute)?s?)\b/);
+  if (minMatch) {
+    const m = parseFloat(minMatch[1]);
+    if (!isNaN(m) && m > 0 && m < 30) return Math.round(m * 60);
+  }
+  // Seconds: "30 sec", "30 seconds", "30s hold"
+  const secMatch = lc.match(/(\d+)\s*(?:s(?:ec(?:ond)?s?)?\b|"\s|'\s)/);
+  if (secMatch) {
+    const s = parseInt(secMatch[1], 10);
+    if (!isNaN(s) && s >= 3 && s <= 600) return s;
+  }
+  return null;
+}
+
+/**
+ * Fire a short pleasant chime via the Web Audio API. Pure frontend — no
+ * asset to ship and no permission prompt. Silently no-ops when audio is
+ * unavailable (e.g. SSR, old browser, user muted at OS level).
+ */
+function playChime() {
+  if (typeof window === "undefined") return;
+  const Ctor =
+    window.AudioContext ||
+    (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+  if (!Ctor) return;
+  try {
+    const ctx = new Ctor();
+    const now = ctx.currentTime;
+    const tones = [880, 1320]; // two-note chime, E5-ish
+    tones.forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.value = freq;
+      const start = now + i * 0.18;
+      gain.gain.setValueAtTime(0, start);
+      gain.gain.linearRampToValueAtTime(0.18, start + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.35);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(start);
+      osc.stop(start + 0.4);
+    });
+    // Release the context after the sound is done.
+    setTimeout(() => ctx.close().catch(() => {}), 900);
+  } catch {
+    // Best-effort — never let a blocked audio context break the timer.
+  }
+}
+
+const SOUND_PREF_KEY = "joints-ai:exercise-sound";
+
 export function ExerciseCard({
   name,
   phase,
@@ -54,7 +120,18 @@ export function ExerciseCard({
 }: ExerciseCardProps) {
   const [running, setRunning] = useState(false);
   const [seconds, setSeconds] = useState(0);
+  const [targetReached, setTargetReached] = useState(false);
+  const [soundOn, setSoundOn] = useState(true);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const targetSeconds = useMemo(() => parseTargetSeconds(dose), [dose]);
+
+  // Load the user's sound preference from localStorage once on mount.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const pref = window.localStorage.getItem(SOUND_PREF_KEY);
+    if (pref === "off") setSoundOn(false);
+  }, []);
 
   useEffect(() => {
     if (running) {
@@ -65,10 +142,26 @@ export function ExerciseCard({
     };
   }, [running]);
 
+  // Fire the end-cue exactly when we cross the target (not on every tick
+  // after). The pulse animation lingers for two seconds via CSS.
+  useEffect(() => {
+    if (!targetSeconds || targetReached) return;
+    if (seconds >= targetSeconds) {
+      setTargetReached(true);
+      if (soundOn) playChime();
+      // Light haptic on mobile when available.
+      if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+        try {
+          navigator.vibrate?.(120);
+        } catch {
+          /* no-op */
+        }
+      }
+    }
+  }, [seconds, targetSeconds, targetReached, soundOn]);
+
   const handleStart = () => {
     setRunning(true);
-    // Backwards-compat: callers that pass onStart still get their callback
-    // when the user actually kicks off the timer.
     onStart?.();
   };
 
@@ -77,11 +170,22 @@ export function ExerciseCard({
   const handleReset = () => {
     setRunning(false);
     setSeconds(0);
+    setTargetReached(false);
   };
 
   const handleComplete = () => {
     setRunning(false);
     onComplete?.();
+  };
+
+  const toggleSound = () => {
+    setSoundOn((prev) => {
+      const next = !prev;
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem(SOUND_PREF_KEY, next ? "on" : "off");
+      }
+      return next;
+    });
   };
 
   return (
@@ -122,6 +226,11 @@ export function ExerciseCard({
         <div className="flex items-center gap-1.5 text-sm text-ink">
           <Clock className="h-4 w-4 text-ink-muted" aria-hidden />
           <span className="font-medium">{dose}</span>
+          {targetSeconds ? (
+            <span className="ml-2 rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-500">
+              target {formatSeconds(targetSeconds)}
+            </span>
+          ) : null}
         </div>
       </div>
 
@@ -142,15 +251,29 @@ export function ExerciseCard({
       ) : null}
 
       {!completed ? (
-        <div className="mt-4 flex flex-wrap items-center gap-2">
+        <div className="mt-4 flex flex-wrap items-center gap-2 print:hidden">
           {running || seconds > 0 ? (
             <>
               <div
-                className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-2 text-sm font-medium text-white"
+                className={clsx(
+                  "inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium text-white transition-all",
+                  targetReached
+                    ? "bg-accent animate-pulse"
+                    : "bg-slate-900"
+                )}
                 aria-live="polite"
-                aria-label={`Elapsed time ${formatSeconds(seconds)}`}
+                aria-label={
+                  targetReached
+                    ? `Target reached at ${formatSeconds(seconds)}`
+                    : `Elapsed time ${formatSeconds(seconds)}`
+                }
               >
                 <span className="tabular-nums">{formatSeconds(seconds)}</span>
+                {targetSeconds ? (
+                  <span className="text-xs opacity-80 tabular-nums">
+                    / {formatSeconds(targetSeconds)}
+                  </span>
+                ) : null}
                 {running ? (
                   <button
                     type="button"
@@ -187,6 +310,22 @@ export function ExerciseCard({
                 <Check className="h-4 w-4" />
                 Mark complete
               </button>
+              {targetSeconds ? (
+                <button
+                  type="button"
+                  onClick={toggleSound}
+                  aria-label={soundOn ? "Mute end-of-set chime" : "Enable end-of-set chime"}
+                  aria-pressed={soundOn}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-600 hover:bg-slate-50"
+                  title={soundOn ? "Chime on" : "Chime off"}
+                >
+                  {soundOn ? (
+                    <Volume2 className="h-3.5 w-3.5" aria-hidden />
+                  ) : (
+                    <VolumeX className="h-3.5 w-3.5" aria-hidden />
+                  )}
+                </button>
+              ) : null}
             </>
           ) : (
             <>
