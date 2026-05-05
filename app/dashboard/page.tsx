@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useAuthStore } from "@/store/authStore";
 import {
   Plus,
@@ -14,7 +14,13 @@ import {
   ArrowRight,
   Stethoscope,
   Settings as SettingsIcon,
+  ChevronRight,
+  Calendar,
+  Activity
 } from "lucide-react";
+import { FadeIn } from "@/components/ui/fade-in";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
 
 interface Stats {
   totalExercises: number;
@@ -41,7 +47,7 @@ function StatCard({
   label,
   loading,
 }: {
-  icon: typeof Target;
+  icon: any;
   iconBg: string;
   iconColor: string;
   value: string | number;
@@ -49,19 +55,19 @@ function StatCard({
   loading: boolean;
 }) {
   return (
-    <Card>
+    <Card variant="default" className="border-none shadow-premium hover:shadow-xl transition-all group">
       <CardContent className="p-6">
-        <div className="flex items-center gap-3">
-          <div className={`w-10 h-10 ${iconBg} rounded-lg flex items-center justify-center`}>
-            <Icon className={`h-5 w-5 ${iconColor}`} aria-hidden />
+        <div className="flex items-center gap-4">
+          <div className={`w-12 h-12 ${iconBg} rounded-2xl flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform`}>
+            <Icon className={`h-6 w-6 ${iconColor}`} />
           </div>
           <div className="min-w-0">
             {loading ? (
-              <div className="h-7 w-12 rounded bg-slate-100 animate-pulse" />
+              <div className="h-8 w-16 rounded-lg bg-slate-100 animate-pulse" />
             ) : (
-              <p className="text-2xl font-bold">{value}</p>
+              <p className="text-2xl font-black text-ink tracking-tight">{value}</p>
             )}
-            <p className="text-xs text-slate-500">{label}</p>
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{label}</p>
           </div>
         </div>
       </CardContent>
@@ -126,11 +132,9 @@ export default function DashboardPage() {
       ? Math.round((stats.completedExercises / stats.totalExercises) * 100)
       : 0;
 
-  // Derive a rough weekly activity histogram from recent plan activity.
-  // Each plan created in the last 7 days contributes to that weekday's bucket.
   const { thisWeekCount, lastWeekCount, weeklyBars } = useMemo(() => {
     const now = new Date();
-    const weekdayOf = (d: Date) => (d.getDay() + 6) % 7; // Mon=0 ... Sun=6
+    const weekdayOf = (d: Date) => (d.getDay() + 6) % 7; 
     const bars = new Array(7).fill(0) as number[];
     let thisWeek = 0;
     let lastWeek = 0;
@@ -164,155 +168,166 @@ export default function DashboardPage() {
   const firstName = user?.full_name?.split(" ")[0];
 
   return (
-    <div>
-      <h1 className="text-3xl font-bold mb-8">
-        Welcome back{firstName ? `, ${firstName}` : ""}
-      </h1>
+    <div className="max-w-7xl mx-auto space-y-8">
+      <FadeIn>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+           <div>
+              <h1 className="text-4xl font-black text-ink tracking-tight mb-2">
+                 Hello, {firstName || "there"}
+              </h1>
+              <p className="text-slate-500 font-medium">Here&apos;s your recovery overview for today.</p>
+           </div>
+           <Link href="/assess/method">
+              <Button className="h-12 px-6 rounded-2xl shadow-lg shadow-brand-100 group">
+                 <Plus className="h-5 w-5 mr-2 group-hover:rotate-90 transition-transform" />
+                 New Assessment
+              </Button>
+           </Link>
+        </div>
+      </FadeIn>
 
-      <div className="grid md:grid-cols-4 gap-4 mb-8">
-        <StatCard icon={Target} iconBg="bg-blue-100" iconColor="text-blue-600" value={stats.completedExercises} label="Exercises Done" loading={loading} />
-        <StatCard icon={CheckCircle} iconBg="bg-green-100" iconColor="text-green-600" value={`${progressPercent}%`} label="Completion Rate" loading={loading} />
-        <StatCard icon={Flame} iconBg="bg-orange-100" iconColor="text-orange-600" value={stats.currentStreak} label="Day Streak" loading={loading} />
-        <StatCard icon={TrendingUp} iconBg="bg-purple-100" iconColor="text-purple-600" value={stats.plansCompleted} label="Plans Completed" loading={loading} />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <FadeIn delay={0.1} direction="up">
+          <StatCard icon={Target} iconBg="bg-brand-50" iconColor="text-brand-600" value={stats.completedExercises} label="Exercises Done" loading={loading} />
+        </FadeIn>
+        <FadeIn delay={0.2} direction="up">
+          <StatCard icon={CheckCircle} iconBg="bg-emerald-50" iconColor="text-emerald-600" value={`${progressPercent}%`} label="Completion" loading={loading} />
+        </FadeIn>
+        <FadeIn delay={0.3} direction="up">
+          <StatCard icon={Flame} iconBg="bg-orange-50" iconColor="text-orange-600" value={stats.currentStreak} label="Day Streak" loading={loading} />
+        </FadeIn>
+        <FadeIn delay={0.4} direction="up">
+          <StatCard icon={TrendingUp} iconBg="bg-violet-50" iconColor="text-violet-600" value={stats.plansCompleted} label="Plans Finished" loading={loading} />
+        </FadeIn>
       </div>
 
-      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <Link href="/assess/method" aria-label="Start a new assessment">
-          <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
-            <CardContent className="p-5">
-              <div className="flex items-center gap-3">
-                <div className="w-11 h-11 bg-slate-900 text-white rounded-lg flex items-center justify-center">
-                  <Plus className="h-5 w-5" aria-hidden />
+      <div className="grid lg:grid-cols-12 gap-8">
+        {/* Weekly Chart */}
+        <div className="lg:col-span-8">
+          <FadeIn delay={0.5}>
+            <Card variant="default" className="border-none shadow-premium h-full">
+              <CardHeader className="flex flex-row items-center justify-between pb-8">
+                <div>
+                   <CardTitle className="text-2xl">Weekly Activity</CardTitle>
+                   <CardDescription>Exercises completed this week</CardDescription>
                 </div>
-                <div className="min-w-0">
-                  <h3 className="font-semibold">New Assessment</h3>
-                  <p className="text-sm text-slate-500">Report pain or injury</p>
+                <div className="bg-brand-50 text-brand-600 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest">
+                   Live
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        </Link>
-
-        <Link href="/dashboard/history" aria-label="View your plans">
-          <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
-            <CardContent className="p-5">
-              <div className="flex items-center gap-3">
-                <div className="w-11 h-11 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <History className="h-5 w-5 text-blue-600" aria-hidden />
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-end justify-between h-48 gap-3 md:gap-6">
+                  {DAY_LABELS.map((day, i) => (
+                    <div key={day} className="flex-1 flex flex-col items-center gap-3 group">
+                      <div className="w-full relative h-full flex items-end">
+                         <motion.div
+                           initial={{ height: 0 }}
+                           animate={{ height: `${weeklyBars[i]}%` }}
+                           transition={{ duration: 1, delay: 0.6 + i * 0.1, ease: "easeOut" }}
+                           className="w-full bg-slate-100 group-hover:bg-brand-100 rounded-t-xl relative overflow-hidden transition-colors"
+                         >
+                            <div className="absolute inset-0 bg-brand-600/10 group-hover:bg-brand-600/20" />
+                         </motion.div>
+                      </div>
+                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{day}</span>
+                    </div>
+                  ))}
                 </div>
-                <div className="min-w-0">
-                  <h3 className="font-semibold">Your Plans</h3>
-                  <p className="text-sm text-slate-500">View past assessments</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </Link>
-
-        <Link href="/dashboard/therapists" aria-label="Find a recommended physiotherapist">
-          <Card className="hover:shadow-md transition-shadow cursor-pointer h-full border-accent/40">
-            <CardContent className="p-5">
-              <div className="flex items-center gap-3">
-                <div className="w-11 h-11 bg-accent-soft rounded-lg flex items-center justify-center">
-                  <Stethoscope className="h-5 w-5 text-accent" aria-hidden />
-                </div>
-                <div className="min-w-0">
-                  <h3 className="font-semibold">Find a Therapist</h3>
-                  <p className="text-sm text-slate-500">In-person & online</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </Link>
-
-        <Link href="/dashboard/settings" aria-label="Open settings">
-          <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
-            <CardContent className="p-5">
-              <div className="flex items-center gap-3">
-                <div className="w-11 h-11 bg-slate-100 rounded-lg flex items-center justify-center">
-                  <SettingsIcon className="h-5 w-5 text-slate-700" aria-hidden />
-                </div>
-                <div className="min-w-0">
-                  <h3 className="font-semibold">Settings</h3>
-                  <p className="text-sm text-slate-500">Manage your profile</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </Link>
-      </div>
-
-      <Card className="mb-8">
-        <CardHeader>
-          <CardTitle>Weekly Progress</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div
-            className="flex items-end justify-between h-32 gap-2"
-            role="img"
-            aria-label={`Weekly activity: ${thisWeekCount} exercises this week`}
-          >
-            {DAY_LABELS.map((day, i) => (
-              <div key={day} className="flex-1 flex flex-col items-center gap-2">
-                <div
-                  className="w-full bg-slate-900 rounded-t transition-all"
-                  style={{ height: `${weeklyBars[i]}%` }}
-                />
-                <span className="text-xs text-slate-500">{day}</span>
-              </div>
-            ))}
-          </div>
-          <div className="mt-4 flex items-center justify-between text-sm text-slate-500">
-            <span>This week: {thisWeekCount} exercises</span>
-            <span>Last week: {lastWeekCount} exercises</span>
-          </div>
-        </CardContent>
-      </Card>
-
-      <h2 className="text-xl font-semibold mb-4">Recent Plans</h2>
-      {loading ? (
-        <div className="space-y-3" aria-busy="true" aria-label="Loading plans">
-          {[0, 1].map((i) => (
-            <Card key={i}>
-              <CardContent className="p-4">
-                <div className="animate-pulse space-y-2">
-                  <div className="h-5 w-1/3 rounded bg-slate-200" />
-                  <div className="h-4 w-2/3 rounded bg-slate-100" />
+                <div className="mt-10 pt-6 border-t border-slate-50 flex items-center justify-between text-sm">
+                  <div className="flex gap-6">
+                     <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full bg-brand-600/20" />
+                        <span className="font-bold text-slate-600">This Week: {thisWeekCount}</span>
+                     </div>
+                     <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full bg-slate-100" />
+                        <span className="font-bold text-slate-400 italic">Last Week: {lastWeekCount}</span>
+                     </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
-          ))}
+          </FadeIn>
         </div>
-      ) : recentPlans.length === 0 ? (
-        <Card>
-          <CardContent className="p-6 text-center">
-            <p className="text-slate-500 mb-4">
-              No plans yet. Start a new assessment to get your personalized exercise program.
-            </p>
-            <Link href="/assess/method" className="inline-flex items-center gap-1 text-sm font-medium text-accent hover:underline">
-              Start your first assessment <ArrowRight className="h-4 w-4" aria-hidden />
-            </Link>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="space-y-3">
-          {recentPlans.map((plan) => (
-            <Link key={plan.id} href={`/results/${plan.id}`} aria-label={`Open plan ${plan.id.slice(0, 8)}`}>
-              <Card className="hover:shadow-md transition-shadow">
-                <CardContent className="p-4 flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">Assessment #{plan.id.slice(0, 8)}</p>
-                    <p className="text-sm text-slate-500">
-                      {plan.exercises_completed}/{plan.total_exercises} exercises completed
-                    </p>
-                  </div>
-                  <ArrowRight className="h-5 w-5 text-slate-400" aria-hidden />
-                </CardContent>
+
+        {/* Quick Actions / Recent */}
+        <div className="lg:col-span-4 space-y-8">
+           <FadeIn delay={0.6}>
+              <Card variant="default" className="border-none shadow-premium overflow-hidden">
+                 <div className="bg-brand-600 p-6 text-white">
+                    <h3 className="text-xl font-bold mb-1">Recovery Pulse</h3>
+                    <p className="text-brand-100 text-sm font-medium">Stay consistent for faster results.</p>
+                 </div>
+                 <CardContent className="p-6">
+                    <div className="space-y-4">
+                       {[
+                         { icon: History, label: "Review Past Plans", href: "/dashboard/history" },
+                         { icon: Stethoscope, label: "Contact Clinician", href: "/dashboard/therapists" },
+                         { icon: SettingsIcon, label: "Profile Settings", href: "/dashboard/settings" }
+                       ].map((item, i) => (
+                         <Link key={i} href={item.href} className="flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 transition-colors group">
+                            <div className="flex items-center gap-3">
+                               <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-white group-hover:text-brand-600 transition-colors">
+                                  <item.icon className="h-4 w-4" />
+                               </div>
+                               <span className="text-sm font-bold text-slate-600 group-hover:text-ink">{item.label}</span>
+                            </div>
+                            <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-brand-600 transition-colors" />
+                         </Link>
+                       ))}
+                    </div>
+                 </CardContent>
               </Card>
-            </Link>
-          ))}
+           </FadeIn>
+
+           <FadeIn delay={0.7}>
+              <div className="flex items-center justify-between mb-4 px-2">
+                 <h2 className="text-lg font-black text-ink uppercase tracking-tight">Recent Plans</h2>
+                 <Link href="/dashboard/history" className="text-xs font-bold text-brand-600 hover:underline">View All</Link>
+              </div>
+              
+              {loading ? (
+                <div className="space-y-3">
+                   {[0, 1].map(i => <div key={i} className="h-20 bg-slate-50 rounded-2xl animate-pulse" />)}
+                </div>
+              ) : recentPlans.length === 0 ? (
+                <Card variant="default" className="border-none shadow-sm bg-slate-50/50">
+                  <CardContent className="p-6 text-center">
+                    <p className="text-slate-400 text-sm font-medium mb-4">No active plans.</p>
+                    <Link href="/assess/method">
+                       <Button variant="outline" size="sm" className="rounded-xl border-2">Start First Assessment</Button>
+                    </Link>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="space-y-3">
+                  {recentPlans.map((plan) => (
+                    <Link key={plan.id} href={`/results/${plan.id}`}>
+                      <Card variant="default" className="border-none shadow-premium hover:shadow-xl transition-all group">
+                        <CardContent className="p-4 flex items-center justify-between">
+                          <div className="flex items-center gap-4">
+                             <div className="w-10 h-10 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center font-black text-xs">
+                                #{plan.id.slice(0, 4)}
+                             </div>
+                             <div>
+                                <p className="text-sm font-bold text-ink">Plan {plan.id.slice(0, 8)}</p>
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                   {plan.exercises_completed}/{plan.total_exercises} Exercises
+                                </p>
+                             </div>
+                          </div>
+                          <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center group-hover:bg-brand-600 group-hover:text-white transition-all">
+                             <ArrowRight className="h-4 w-4" />
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  ))}
+                </div>
+              )}
+           </FadeIn>
         </div>
-      )}
+      </div>
     </div>
   );
 }

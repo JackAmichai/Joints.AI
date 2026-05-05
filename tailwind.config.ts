@@ -10,21 +10,49 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Clinical, professional palette
-        brand: {
-          50: "#f0f7ff",
-          100: "#e0effe",
-          200: "#bae0fd",
-          300: "#7cc8fb",
-          400: "#36acf7",
-          500: "#0c92eb",
-          600: "#0074ca",
-          700: "#005ca5",
-          800: "#004f89",
-          900: "#064271",
-          950: "#042a4a",
-          DEFAULT: "#0c92eb",
+        // Clinical, calm palette — deliberately non-alarming
+        ink: {
+          DEFAULT: "#0B1220",
+          soft: "#1B2437",
+          muted: "#4B5565"
         },
+        paper: {
+          DEFAULT: "#F7F8FB",
+          raised: "#FFFFFF",
+          sunk: "#EEF1F6"
+        },
+        accent: {
+          DEFAULT: "#2F6FEB",
+          soft: "#DDE7FB"
+        },
+        caution: {
+          DEFAULT: "#B45309",
+          soft: "#FEF3C7"
+        },
+        halt: {
+          DEFAULT: "#B91C1C",
+          soft: "#FEE2E2"
+        },
+        // Extended palette for anatomical theme
+        sky: {
+          soft: "#E8F1FF",
+          50: "#F5F9FF"
+        },
+        teal: {
+          DEFAULT: "#0D9488",
+          soft: "#CCFBF1",
+          50: "#F0FDFA"
+        },
+        violet: {
+          DEFAULT: "#7C3AED",
+          soft: "#EDE9FE",
+          50: "#F5F3FF"
+        },
+        amber: {
+          soft: "#FEF3C7",
+          50: "#FFFBEB"
+        }
+      },
         ink: {
           DEFAULT: "#0B1220",
           soft: "#1B2437",

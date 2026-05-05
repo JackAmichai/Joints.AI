@@ -2,20 +2,19 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { PlanViewer } from "@/components/exercises/PlanViewer";
-import { AlertTriangle, Clock, ShieldCheck, RefreshCw } from "lucide-react";
+import { AlertTriangle, Clock, ShieldCheck, RefreshCw, Loader2, CheckCircle2, FileText, Share2, Download } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
 import { useToast } from "@/components/ui/toast";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { FadeIn } from "@/components/ui/fade-in";
+import { motion, AnimatePresence } from "framer-motion";
 
 import {
   fetchSubmission as fetchSubmissionApi,
   isTerminal
 } from "@/lib/api/fetchSubmission";
 import type { IntakeSubmission } from "@/lib/types/intake";
-
-// The backend serializes camelCase via Pydantic aliases + response_model_by_alias=True.
-// We consume those types directly from @/lib/types rather than maintaining a
-// snake_case shadow copy here (which was the source of a bug where every
-// plan field rendered as undefined).
 
 interface ResultsClientProps {
   submissionId: string;
@@ -76,8 +75,6 @@ export function ResultsClient({ submissionId, halted }: ResultsClientProps) {
       if (cancelled) return;
       const next = await fetchSubmission();
       if (cancelled) return;
-      // Stop polling once we hit a terminal state. On error, keep polling
-      // but back off — the backend may just be restarting.
       if (!next) {
         timer = setTimeout(tick, POLL_MS * 2);
         return;
@@ -93,167 +90,173 @@ export function ResultsClient({ submissionId, halted }: ResultsClientProps) {
     };
   }, [fetchSubmission, halted]);
 
-  const handlePrint = () => window.print();
-
   const handleDownloadPdf = async () => {
+    toast("Generating your PDF...", "info");
     const response = await fetch(`/api/exercises/pdf/${submissionId}`);
     if (response.ok) {
       const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
+      const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `exercise-plan-${submissionId}.pdf`;
+      a.download = `recovery-plan-${submissionId.slice(0, 8)}.pdf`;
       a.click();
-      URL.revokeObjectURL(url);
+      toast("PDF downloaded", "success");
+    } else {
+      toast("Failed to download PDF", "error");
     }
   };
 
   if (halted) {
     return (
-      <div className="mx-auto max-w-3xl px-6 py-12">
-        <section className="mt-4 rounded-lg border border-red-200 bg-red-50 p-6">
-          <div className="flex items-start gap-3">
-            <AlertTriangle className="h-5 w-5 mt-0.5 text-red-600 shrink-0" />
-            <div>
-              <h1 className="text-xl font-semibold text-red-700">
-                Please seek in-person care first.
-              </h1>
-              <p className="mt-2 text-slate-700">
-                The triage step flagged something in what you described that
-                should be evaluated by a clinician before any mobility program
-                is appropriate. We have not generated any exercises.
-              </p>
-              <p className="mt-2 text-slate-500">
-                If this is urgent — numbness in the saddle area, loss of bowel
-                or bladder control, severe chest pain, or a cold pulseless
-                limb — please go to an emergency department now.
-              </p>
+      <div className="max-w-3xl mx-auto px-6 py-24">
+        <FadeIn>
+          <Card className="border-none shadow-premium overflow-hidden">
+            <div className="bg-red-600 p-8 text-white">
+              <AlertTriangle className="h-12 w-12 mb-6" />
+              <h1 className="text-3xl font-black tracking-tight mb-2">Red Flag Warning</h1>
+              <p className="text-red-100 text-lg">Your assessment indicates symptoms that require urgent medical evaluation.</p>
             </div>
-          </div>
-        </section>
-
-        <section className="mt-6 rounded-lg border border-slate-200 p-4">
-          <div className="flex items-start gap-3">
-            <ShieldCheck className="h-5 w-5 mt-0.5 text-blue-600 shrink-0" />
-            <p className="text-sm text-slate-600">
-              <span className="font-semibold text-slate-900">
-                This system does not diagnose.
-              </span>{" "}
-              Any protocol you eventually receive will use language like
-              &quot;symptoms commonly associated with…&quot; — not &quot;you have…&quot;. If something
-              about your condition changes, stop the program and consult a clinician.
-            </p>
-          </div>
-        </section>
-      </div>
-    );
-  }
-
-  if (loading) {
-    return (
-      <div className="mx-auto max-w-3xl px-6 py-12 text-center">
-        <div className="inline-flex items-center gap-2 text-slate-600">
-          <RefreshCw className="h-5 w-5 animate-spin" />
-          Loading your plan...
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="mx-auto max-w-3xl px-6 py-12">
-        <p className="text-red-600">Error: {error}</p>
-        <button onClick={fetchSubmission} className="mt-4 text-blue-600 underline">
-          Try again
-        </button>
-      </div>
-    );
-  }
-
-  if (!submission?.plan) {
-    return (
-      <div className="mx-auto max-w-3xl px-6 py-12">
-        <section className="mt-4 rounded-lg border border-slate-200 p-6">
-          <div className="flex items-start gap-3">
-            <Clock className="h-5 w-5 mt-0.5 text-blue-600 shrink-0" />
-            <div>
-              <h1 className="text-xl font-semibold">Your plan is being prepared.</h1>
-              <p className="mt-2 text-slate-500">
-                Triage cleared. Your inputs are being processed, and a mobility
-                protocol is being drafted. This usually takes a moment.
-              </p>
-              <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
-                <StatusPill label="Triage" state="done" />
-                <StatusPill label="Extraction & RAG" state="done" />
-                <StatusPill label="Clinician review" state="queued" />
+            <CardContent className="p-8">
+              <div className="space-y-6">
+                <p className="text-slate-600 leading-relaxed font-medium">
+                  We have halted the AI generation of your exercise plan because your safety is our priority. 
+                  Certain symptoms require a physical examination by a healthcare professional before starting any rehab.
+                </p>
+                <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100">
+                   <h3 className="font-bold text-ink mb-2">Next Steps:</h3>
+                   <ul className="space-y-3">
+                      <li className="flex gap-3 text-sm text-slate-500 font-medium">
+                         <div className="w-5 h-5 rounded-full bg-red-100 text-red-600 flex items-center justify-center shrink-0">1</div>
+                         Contact your primary care physician immediately.
+                      </li>
+                      <li className="flex gap-3 text-sm text-slate-500 font-medium">
+                         <div className="w-5 h-5 rounded-full bg-red-100 text-red-600 flex items-center justify-center shrink-0">2</div>
+                         If you experience severe worsening, visit Urgent Care or the ER.
+                      </li>
+                   </ul>
+                </div>
+                <Button variant="outline" className="w-full h-12 rounded-xl" onClick={() => window.location.href = "/dashboard"}>
+                  Return to Dashboard
+                </Button>
               </div>
-              <p className="mt-4 text-xs text-slate-400">
-                Last checked: {lastFetch.toLocaleTimeString()}
-              </p>
-            </div>
-          </div>
-        </section>
+            </CardContent>
+          </Card>
+        </FadeIn>
       </div>
     );
   }
 
-  // HITL gate: the draft is not released until a clinician has cleared it.
-  if (!submission.plan.clinicianReviewed) {
+  if (loading || (submission && !isTerminal(submission.status))) {
     return (
-      <div className="mx-auto max-w-3xl px-6 py-12">
-        <section className="mt-4 rounded-lg border border-slate-200 p-6">
-          <div className="flex items-start gap-3">
-            <Clock className="h-5 w-5 mt-0.5 text-blue-600 shrink-0" />
-            <div>
-              <h1 className="text-xl font-semibold">A clinician is reviewing your plan.</h1>
-              <p className="mt-2 text-slate-500">
-                The draft is ready and queued for human sign-off. It won&apos;t
-                be released until a clinician has cleared it.
-              </p>
-              <p className="mt-4 text-xs text-slate-400">
-                Last checked: {lastFetch.toLocaleTimeString()}
-              </p>
+      <div className="min-h-[80vh] flex flex-col items-center justify-center p-6">
+         <div className="relative mb-12">
+            <div className="w-24 h-24 border-4 border-brand-100 rounded-full" />
+            <motion.div 
+               animate={{ rotate: 360 }}
+               transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+               className="absolute inset-0 w-24 h-24 border-4 border-brand-600 border-t-transparent rounded-full"
+            />
+            <Activity className="absolute inset-0 m-auto h-8 w-8 text-brand-600" />
+         </div>
+         <FadeIn>
+            <div className="text-center">
+               <h1 className="text-3xl font-black text-ink mb-2 tracking-tight">Synthesizing Your Plan</h1>
+               <p className="text-slate-500 font-medium max-w-xs mx-auto">Our AI is analyzing your assessment against clinical protocols...</p>
             </div>
-          </div>
-        </section>
+         </FadeIn>
+         <div className="mt-12 w-full max-w-xs bg-slate-100 h-1.5 rounded-full overflow-hidden">
+            <motion.div 
+               initial={{ width: "0%" }}
+               animate={{ width: "100%" }}
+               transition={{ duration: 15, ease: "easeInOut" }}
+               className="h-full bg-brand-600"
+            />
+         </div>
+      </div>
+    );
+  }
+
+  if (error || !submission || !submission.plan) {
+    return (
+      <div className="max-w-3xl mx-auto px-6 py-24 text-center">
+        <div className="w-20 h-20 bg-slate-50 rounded-3xl flex items-center justify-center mx-auto mb-8 text-slate-300">
+           <AlertTriangle className="h-10 w-10" />
+        </div>
+        <h1 className="text-2xl font-black text-ink mb-4">Something went wrong</h1>
+        <p className="text-slate-500 mb-8 max-w-md mx-auto">{error || "We couldn't generate your plan at this time. Our engineers have been notified."}</p>
+        <Button variant="default" onClick={() => window.location.reload()}>
+          Try Again
+        </Button>
       </div>
     );
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-6 py-12">
-      <PlanViewer
-        plan={submission.plan}
-        onPrint={handlePrint}
-        onDownloadPdf={handleDownloadPdf}
-        onExerciseComplete={handleExerciseComplete}
-      />
-    </div>
-  );
-}
+    <div className="max-w-5xl mx-auto px-6 py-12 md:py-20">
+      <FadeIn>
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+           <div>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-50 text-brand-600 text-xs font-black uppercase tracking-widest mb-4">
+                 <CheckCircle2 className="h-3.5 w-3.5" /> Plan Ready
+              </div>
+              <h1 className="text-4xl md:text-5xl font-black text-ink tracking-tight mb-2">
+                 Your Recovery Plan
+              </h1>
+              <p className="text-slate-500 text-lg font-medium">Generated based on your assessment from {new Date(submission.created_at).toLocaleDateString()}</p>
+           </div>
+           <div className="flex flex-wrap gap-3">
+              <Button variant="outline" className="rounded-xl h-12" onClick={handleDownloadPdf}>
+                 <Download className="h-4 w-4 mr-2" /> PDF
+              </Button>
+              <Button variant="outline" className="rounded-xl h-12">
+                 <Share2 className="h-4 w-4 mr-2" /> Share
+              </Button>
+           </div>
+        </div>
+      </FadeIn>
 
-function StatusPill({
-  label,
-  state,
-}: {
-  label: string;
-  state: "done" | "running" | "queued";
-}) {
-  const style =
-    state === "done"
-      ? "bg-green-100 text-green-700"
-      : state === "running"
-        ? "bg-yellow-100 text-yellow-700"
-        : "bg-slate-100 text-slate-500";
-  const text =
-    state === "done" ? "Done" : state === "running" ? "Running" : "Waiting";
-  return (
-    <div className="rounded-md border border-slate-200 bg-white p-3">
-      <p className="text-xs text-slate-500">{label}</p>
-      <span className={`mt-1 inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${style}`}>
-        {text}
-      </span>
+      <div className="grid lg:grid-cols-12 gap-8">
+         <div className="lg:col-span-8">
+            <PlanViewer
+              plan={submission.plan}
+              onExerciseComplete={handleExerciseComplete}
+            />
+         </div>
+         <div className="lg:col-span-4">
+            <div className="sticky top-24 space-y-6">
+               <Card variant="default" className="border-none shadow-premium overflow-hidden">
+                  <div className="bg-slate-900 p-6 text-white">
+                     <h3 className="font-bold flex items-center gap-2">
+                        <ShieldCheck className="h-5 w-5 text-brand-400" />
+                        Clinical Guardrails
+                     </h3>
+                  </div>
+                  <CardContent className="p-6 space-y-4">
+                     <p className="text-sm text-slate-500 leading-relaxed italic">
+                        "Stop immediately if you feel sharp, stabbing pain or sudden swelling."
+                     </p>
+                     <div className="pt-4 border-t border-slate-100">
+                        <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Compliance</h4>
+                        <div className="flex items-center gap-2 text-emerald-600">
+                           <ShieldCheck className="h-4 w-4" />
+                           <span className="text-xs font-bold">HIPAA Secure Data</span>
+                        </div>
+                     </div>
+                  </CardContent>
+               </Card>
+
+               <Card variant="glass" className="border-none shadow-premium bg-brand-50/50">
+                  <CardContent className="p-6">
+                     <h3 className="font-bold text-ink mb-2">Need human review?</h3>
+                     <p className="text-sm text-slate-500 mb-6">Connect with a certified physiotherapist to review this plan.</p>
+                     <Link href="/dashboard/therapists">
+                        <Button className="w-full rounded-xl h-12" variant="premium">Find a Clinician</Button>
+                     </Link>
+                  </CardContent>
+               </Card>
+            </div>
+         </div>
+      </div>
     </div>
   );
 }

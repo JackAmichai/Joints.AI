@@ -4,36 +4,11 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
 import { useAuthStore } from "@/store/authStore";
-
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "default" | "outline";
-}
-
-function Button({ className, variant = "default", ...props }: ButtonProps) {
-  return (
-    <button
-      className={`inline-flex items-center justify-center rounded-md font-medium transition-colors ${
-        variant === "default"
-          ? "bg-slate-900 text-white hover:bg-slate-800 px-4 py-2"
-          : "border border-slate-300 bg-transparent hover:bg-slate-100 px-4 py-2"
-      } ${className || ""}`}
-      {...props}
-    />
-  );
-}
-
-interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {}
-
-function Input({ className, ...props }: InputProps) {
-  return (
-    <input
-      className={`flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm ${
-        className || ""
-      }`}
-      {...props}
-    />
-  );
-}
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Loader2, AlertCircle } from "lucide-react";
+import { FadeIn } from "@/components/ui/fade-in";
 
 export function LoginForm() {
   const [email, setEmail] = useState("");
@@ -48,66 +23,90 @@ export function LoginForm() {
     setLoading(true);
     setError(null);
 
-    const { data, error: authError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (authError) {
-      setError(authError.message);
-      setLoading(false);
-      return;
-    }
-
-    if (data.user) {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", data.user.id)
-        .single();
-
-      setUser({
-        id: data.user.id,
-        email: data.user.email!,
-        ...profile,
+    try {
+      const { data, error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
       });
-    }
 
-    setLoading(false);
-    router.push("/dashboard");
+      if (authError) {
+        setError(authError.message);
+        setLoading(false);
+        return;
+      }
+
+      if (data.user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", data.user.id)
+          .single();
+
+        setUser({
+          id: data.user.id,
+          email: data.user.email!,
+          ...profile,
+        });
+      }
+
+      router.push("/dashboard");
+    } catch (err) {
+      setError("An unexpected error occurred. Please try again.");
+      setLoading(false);
+    }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-6">
       {error && (
-        <div className="p-3 bg-red-50 text-red-600 rounded-md text-sm">
-          {error}
-        </div>
+        <FadeIn>
+          <div className="bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-xl flex items-center gap-3 text-sm font-medium">
+            <AlertCircle className="h-5 w-5 shrink-0" />
+            {error}
+          </div>
+        </FadeIn>
       )}
-      <div>
-        <label htmlFor="email" className="block text-sm font-medium mb-1">Email</label>
+
+      <div className="space-y-2">
+        <Label htmlFor="email">Email Address</Label>
         <Input
           id="email"
           type="email"
+          placeholder="name@example.com"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
           autoComplete="email"
         />
       </div>
-      <div>
-        <label htmlFor="password" className="block text-sm font-medium mb-1">Password</label>
+
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <Label htmlFor="password">Password</Label>
+          <button type="button" className="text-xs font-bold text-brand-600 hover:text-brand-700 uppercase tracking-wider">
+            Forgot?
+          </button>
+        </div>
         <Input
           id="password"
           type="password"
+          placeholder="••••••••"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
           autoComplete="current-password"
         />
       </div>
-      <Button type="submit" className="w-full" disabled={loading}>
-        {loading ? "Signing in..." : "Sign In"}
+
+      <Button
+        type="submit"
+        className="w-full h-14 rounded-2xl shadow-lg shadow-brand-100"
+        disabled={loading}
+      >
+        {loading ? (
+          <Loader2 className="h-5 w-5 animate-spin mr-2" />
+        ) : null}
+        Sign In
       </Button>
     </form>
   );

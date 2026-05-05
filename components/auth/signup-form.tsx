@@ -4,30 +4,11 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
 import { useAuthStore } from "@/store/authStore";
-
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {}
-
-function Button({ className, ...props }: ButtonProps) {
-  return (
-    <button
-      className={`inline-flex items-center justify-center rounded-md font-medium bg-slate-900 text-white hover:bg-slate-800 px-4 py-2 ${className || ""}`}
-      {...props}
-    />
-  );
-}
-
-interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {}
-
-function Input({ className, ...props }: InputProps) {
-  return (
-    <input
-      className={`flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm ${
-        className || ""
-      }`}
-      {...props}
-    />
-  );
-}
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Loader2, AlertCircle, CheckCircle2 } from "lucide-react";
+import { FadeIn } from "@/components/ui/fade-in";
 
 function isValidPassword(pwd: string): boolean {
   if (pwd.length < 8) return false;
@@ -57,85 +38,105 @@ export function SignupForm() {
       return;
     }
 
-    const { data, error: authError } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { full_name: fullName },
-      },
-    });
+    try {
+      const { data, error: authError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { full_name: fullName },
+        },
+      });
 
-    if (authError) {
-      setError(authError.message);
+      if (authError) {
+        setError(authError.message);
+        setLoading(false);
+        return;
+      }
+
+      if (data.user) {
+        await supabase.from("profiles").insert({
+          id: data.user.id,
+          email,
+          full_name: fullName,
+        });
+
+        setUser({
+          id: data.user.id,
+          email,
+          full_name: fullName,
+        });
+      }
+
+      router.push("/dashboard");
+    } catch (err) {
+      setError("An unexpected error occurred. Please try again.");
       setLoading(false);
-      return;
     }
-
-    if (data.user) {
-      await supabase.from("profiles").insert({
-        id: data.user.id,
-        email,
-        full_name: fullName,
-      });
-
-      setUser({
-        id: data.user.id,
-        email,
-        full_name: fullName,
-      });
-    }
-
-    setLoading(false);
-    router.push("/dashboard");
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-6">
       {error && (
-        <div className="p-3 bg-red-50 text-red-600 rounded-md text-sm">
-          {error}
-        </div>
+        <FadeIn>
+          <div className="bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-xl flex items-center gap-3 text-sm font-medium">
+            <AlertCircle className="h-5 w-5 shrink-0" />
+            {error}
+          </div>
+        </FadeIn>
       )}
-      <div>
-        <label className="block text-sm font-medium mb-1">Full Name</label>
+
+      <div className="space-y-2">
+        <Label htmlFor="fullName">Full Name</Label>
         <Input
-          type="text"
+          id="fullName"
+          placeholder="John Doe"
           value={fullName}
           onChange={(e) => setFullName(e.target.value)}
           required
         />
       </div>
-      <div>
-        <label className="block text-sm font-medium mb-1">Email</label>
+
+      <div className="space-y-2">
+        <Label htmlFor="email">Email Address</Label>
         <Input
+          id="email"
           type="email"
+          placeholder="name@example.com"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
+          autoComplete="email"
         />
       </div>
-      <div>
-        <label htmlFor="password" className="block text-sm font-medium mb-1">Password</label>
+
+      <div className="space-y-2">
+        <Label htmlFor="password">Password</Label>
         <Input
           id="password"
           type="password"
+          placeholder="••••••••"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
-          minLength={8}
-          aria-describedby="password-hint"
+          autoComplete="new-password"
         />
-        <p id="password-hint" className="text-xs text-slate-500 mt-1">
-          At least 8 characters with uppercase, lowercase, and a number
-        </p>
-        {password.length > 0 && (
-          <p className={`text-xs mt-1 ${isValidPassword(password) ? "text-green-600" : "text-red-500"}`}>
-            {isValidPassword(password) ? "Password is strong" : "Password is weak"}
-          </p>
-        )}
+        <div className="pt-2 space-y-2">
+           <div className={`flex items-center gap-2 text-xs font-bold transition-colors ${isValidPassword(password) ? "text-green-600" : "text-slate-400"}`}>
+              <CheckCircle2 className="h-3.5 w-3.5" />
+              8+ chars, upper, lower, & number
+           </div>
+        </div>
       </div>
-      <Button type="submit" className="w-full" disabled={loading}>
-        {loading ? "Creating account..." : "Create Account"}
+
+      <Button
+        type="submit"
+        className="w-full h-14 rounded-2xl shadow-lg shadow-brand-100"
+        disabled={loading}
+      >
+        {loading ? (
+          <Loader2 className="h-5 w-5 animate-spin mr-2" />
+        ) : null}
+        Create Account
       </Button>
     </form>
   );
