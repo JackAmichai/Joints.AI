@@ -10,7 +10,9 @@ import { motion, AnimatePresence } from "framer-motion";
 interface Exercise {
   id: string;
   name: string;
-  description: string;
+  description?: string;
+  instructions?: string[];
+  dose?: string;
   video_url?: string;
   sets?: number;
   reps?: string;
@@ -102,7 +104,7 @@ export function ExerciseCard({ exercise, isCompleted, onComplete }: ExerciseCard
                         exit={{ opacity: 0 }}
                         className="h-full min-h-[200px]"
                      >
-                        <ExercisePlayer videoUrl={exercise.video_url} title={exercise.name} />
+                        <ExercisePlayer open={showVideo} onClose={() => setShowVideo(false)} exerciseName={exercise.name} instructions={exercise.instructions || []} dose={exercise.dose || ""} videoUrl={exercise.video_url} />
                      </motion.div>
                    ) : (
                      <motion.div 

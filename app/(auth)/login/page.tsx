@@ -6,6 +6,7 @@ import { Activity, ChevronLeft, Quote } from "lucide-react";
 import { FadeIn } from "@/components/ui/fade-in";
 import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
+import { BodySilhouette } from "@/components/illustrations/BodySilhouette";
 
 export default function LoginPage() {
   return (
@@ -46,11 +47,19 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* Right Side - Visual/Social Proof */}
-      <div className="hidden lg:flex flex-1 bg-slate-50 relative overflow-hidden items-center justify-center p-12">
+      {/* Right Side - Anatomical Visual Panel */}
+      <div className="hidden lg:flex flex-1 bg-gradient-to-br from-sky-50 to-brand-50 relative overflow-hidden items-center justify-center p-12">
+        {/* Background decorations */}
         <div className="absolute inset-0 z-0">
            <div className="absolute top-[-10%] right-[-10%] w-[60%] h-[60%] bg-brand-100/40 blur-[120px] rounded-full" />
-           <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-brand-50 blur-[100px] rounded-full" />
+           <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-teal-50/50 blur-[100px] rounded-full" />
+        </div>
+
+        {/* Anatomical body silhouette */}
+        <div className="absolute inset-0 flex items-center justify-center opacity-[0.08] pointer-events-none">
+          <div className="h-[80%] text-brand-600">
+            <BodySilhouette animated />
+          </div>
         </div>
 
         <div className="relative z-10 max-w-lg">
@@ -60,10 +69,12 @@ export default function LoginPage() {
                     <Quote className="h-6 w-6" />
                  </div>
                  <p className="text-2xl font-bold text-ink leading-relaxed mb-8">
-                    "Joints.AI helped me recover from my ACL injury 3 weeks faster than expected. The AI adjustments were spot on."
+                    &ldquo;Joints.AI helped me recover from my ACL injury 3 weeks faster than expected. The AI adjustments were spot on.&rdquo;
                  </p>
                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-full bg-slate-200" />
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-brand-100 to-teal-50 flex items-center justify-center text-brand-600 font-bold">
+                       SJ
+                    </div>
                     <div>
                        <div className="font-bold text-ink">Sarah Jenkins</div>
                        <div className="text-sm text-slate-500 font-medium">Recovered Athlete</div>

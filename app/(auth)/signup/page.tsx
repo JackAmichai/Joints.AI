@@ -5,14 +5,23 @@ import Link from "next/link";
 import { Activity, ShieldCheck, HeartPulse, Zap } from "lucide-react";
 import { FadeIn } from "@/components/ui/fade-in";
 import { Card } from "@/components/ui/card";
+import { BodySilhouette } from "@/components/illustrations/BodySilhouette";
 
 export default function SignupPage() {
   return (
     <div className="min-h-screen flex">
-      {/* Left Side - Visual/Features */}
-      <div className="hidden lg:flex flex-1 bg-ink relative overflow-hidden items-center justify-center p-12">
+      {/* Left Side - Anatomical Visual/Features */}
+      <div className="hidden lg:flex flex-1 bg-gradient-to-br from-ink via-slate-900 to-brand-900 relative overflow-hidden items-center justify-center p-12">
         <div className="absolute inset-0 z-0 opacity-20">
            <div className="absolute top-[20%] left-[-10%] w-[70%] h-[70%] bg-brand-600 blur-[150px] rounded-full" />
+           <div className="absolute bottom-[10%] right-[-5%] w-[50%] h-[50%] bg-teal-600/30 blur-[120px] rounded-full" />
+        </div>
+
+        {/* Anatomical body silhouette */}
+        <div className="absolute inset-0 flex items-center justify-center opacity-[0.06] pointer-events-none">
+          <div className="h-[85%] text-brand-400">
+            <BodySilhouette animated />
+          </div>
         </div>
 
         <div className="relative z-10 max-w-lg">

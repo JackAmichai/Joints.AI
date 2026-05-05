@@ -258,7 +258,7 @@ export default function DashboardPage() {
                          >
                             <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-20" />
                             <div className="absolute top-2 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                               <span className="text-[8px] font-black text-white bg-ink/80 px-2 py-1 rounded-md">LOAD: {Math.round(weeklyBars[i])}</span>
+                                <span className="text-[8px] font-black text-white bg-ink/80 px-2 py-1 rounded-md">LOAD: {Math.round(weeklyBars[i] ?? 0)}</span>
                             </div>
                          </motion.div>
                       </div>

@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { PlanViewer } from "@/components/exercises/PlanViewer";
-import { AlertTriangle, Clock, ShieldCheck, RefreshCw, Loader2, CheckCircle2, FileText, Share2, Download } from "lucide-react";
+import { AlertTriangle, Clock, ShieldCheck, RefreshCw, Loader2, CheckCircle2, FileText, Share2, Download, Activity, ArrowRight } from "lucide-react";
+import Link from "next/link";
 import { useAuthStore } from "@/store/authStore";
 import { useToast } from "@/components/ui/toast";
 import { Button } from "@/components/ui/button";
@@ -202,7 +203,7 @@ export function ResultsClient({ submissionId, halted }: ResultsClientProps) {
               <h1 className="text-4xl md:text-5xl font-black text-ink tracking-tight mb-2">
                  Your Recovery Plan
               </h1>
-              <p className="text-slate-500 text-lg font-medium">Generated based on your assessment from {new Date(submission.created_at).toLocaleDateString()}</p>
+               <p className="text-slate-500 text-lg font-medium">Generated based on your assessment from {new Date(submission.createdAt).toLocaleDateString()}</p>
            </div>
            <div className="flex flex-wrap gap-3">
               <Button variant="outline" className="rounded-xl h-12" onClick={handleDownloadPdf}>
@@ -232,9 +233,9 @@ export function ResultsClient({ submissionId, halted }: ResultsClientProps) {
                      </h3>
                   </div>
                   <CardContent className="p-6 space-y-4">
-                     <p className="text-sm text-slate-500 leading-relaxed italic">
-                        "Stop immediately if you feel sharp, stabbing pain or sudden swelling."
-                     </p>
+                      <p className="text-sm text-slate-500 leading-relaxed italic">
+                         &ldquo;Stop immediately if you feel sharp, stabbing pain or sudden swelling.&rdquo;
+                      </p>
                      <div className="pt-4 border-t border-slate-100">
                         <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Compliance</h4>
                         <div className="flex items-center gap-2 text-emerald-600">

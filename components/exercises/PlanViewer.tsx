@@ -26,11 +26,18 @@ interface Exercise {
   name: string;
   phase: string;
   targetRegion: string;
-  description: string;
+  description?: string;
+  instructions?: string[];
+  dose?: string;
   video_url?: string;
   sets?: number;
   reps?: string;
   duration_seconds?: number;
+  stopConditions?: string[];
+  mediaPlaceholders?: {
+    video?: { caption: string };
+    image?: { caption: string };
+  };
 }
 
 interface PlanPhase {
@@ -53,7 +60,7 @@ interface RehabPlan {
 }
 
 interface PlanViewerProps {
-  plan: RehabPlan;
+  plan: any;
   onExerciseComplete?: (exerciseId: string) => void;
   onPrint?: () => void;
   onDownloadPdf?: () => void;
@@ -94,7 +101,7 @@ export function PlanViewer({
     onExerciseComplete?.(exerciseId);
   };
 
-  const totalExercises = plan.phases.reduce((acc, p) => acc + p.exercises.length, 0);
+  const totalExercises = plan.phases.reduce((acc: number, p: any) => acc + p.exercises.length, 0);
   const progress = totalExercises > 0 ? (completedExercises.size / totalExercises) * 100 : 0;
 
   return (
@@ -156,9 +163,9 @@ export function PlanViewer({
 
       {/* Phases */}
       <div className="space-y-6">
-        {plan.phases.map((planPhase, i) => {
+        {plan.phases.map((planPhase: any, i: number) => {
           const isExpanded = expandedPhases[planPhase.phase] ?? false;
-          const completedInPhase = planPhase.exercises.filter(e => completedExercises.has(e.id)).length;
+          const completedInPhase = planPhase.exercises.filter((e: any) => completedExercises.has(e.id)).length;
 
           return (
             <FadeIn key={planPhase.phase} delay={0.2 + i * 0.1}>
@@ -202,12 +209,12 @@ export function PlanViewer({
                     >
                       <div className="p-6 md:p-8 pt-0 space-y-6">
                         <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100 mb-8">
-                           <p className="text-slate-500 font-medium italic leading-relaxed text-sm">
-                              "{planPhase.summary}"
-                           </p>
+                            <p className="text-slate-500 font-medium italic leading-relaxed text-sm">
+                               &ldquo;{planPhase.summary}&rdquo;
+                            </p>
                         </div>
                         <div className="space-y-4">
-                           {planPhase.exercises.map((exercise) => (
+                            {planPhase.exercises.map((exercise: any) => (
                              <ExerciseCard
                                key={exercise.id}
                                exercise={exercise}
