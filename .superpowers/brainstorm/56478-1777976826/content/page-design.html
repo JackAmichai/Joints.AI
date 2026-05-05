@@ -1,0 +1,100 @@
+<h2>Visual Redesign — Page-by-Page Design</h2>
+<p class="subtitle">Option B: Light & Airy, Anatomical — approved direction</p>
+
+<div class="section">
+  <h3>1. Landing Page (app/page.tsx)</h3>
+  
+  <div class="mockup">
+    <div class="mockup-header">Hero Section</div>
+    <div class="mockup-body">
+      <div style="padding:24px;background:linear-gradient(180deg,#F0F4FF 0%,#FFFFFF 100%);border-radius:8px;position:relative;overflow:hidden;min-height:180px;">
+        <!-- Background wave pattern -->
+        <div style="position:absolute;bottom:0;left:0;right:0;opacity:0.06;">
+          <svg viewBox="0 0 800 100" style="width:100%;height:60px;">
+            <path d="M0,50 Q200,10 400,50 T800,50" fill="none" stroke="#2F6FEB" stroke-width="40"/>
+          </svg>
+        </div>
+        <!-- Body silhouette on right -->
+        <div style="position:absolute;right:40px;bottom:20px;width:80px;opacity:0.12;">
+          <svg viewBox="0 0 100 300">
+            <ellipse cx="50" cy="25" rx="18" ry="22" fill="#2F6FEB"/>
+            <rect x="35" y="47" width="30" height="80" rx="8" fill="#2F6FEB"/>
+            <line x1="50" y1="127" x2="30" y2="220" stroke="#2F6FEB" stroke-width="10" stroke-linecap="round"/>
+            <line x1="50" y1="127" x2="70" y2="220" stroke="#2F6FEB" stroke-width="10" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div style="position:relative;z-index:1;padding:16px 0 16px 16px;">
+          <div style="display:inline-block;padding:4px 12px;border-radius:16px;background:#DDE7FB;color:#2F6FEB;font-size:12px;margin-bottom:12px;">✨ AI-Powered Physiotherapy</div>
+          <div style="font-size:24px;font-weight:bold;color:#0B1220;margin-bottom:8px;">Joints.AI</div>
+          <div style="font-size:11px;color:#4B5565;max-width:300px;">Personalized exercise plans for your recovery</div>
+          <div style="margin-top:12px;display:inline-block;padding:6px 16px;border-radius:8px;background:#0B1220;color:#fff;font-size:12px;">Start Your Recovery →</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p style="margin-top:12px;"><strong>Changes:</strong></p>
+  <ul>
+    <li>Hero: Light blue gradient background with flowing wave SVG pattern</li>
+    <li>Full-body anatomical SVG figure (semi-transparent, right side)</li>
+    <li>Animated pulse dots at key joints (shoulder, knee, hip, spine)</li>
+    <li>Subtle floating particle effects</li>
+  </ul>
+</div>
+
+<div class="section">
+  <h3>How It Works Section</h3>
+  <ul>
+    <li>Background: Light gradient (white → soft blue) with spine SVG wave pattern</li>
+    <li>Cards: Enhanced with subtle colored borders and joint icon badges</li>
+    <li>Animated connector lines between the 3 steps</li>
+  </ul>
+</div>
+
+<div class="section">
+  <h3>Input Methods Section</h3>
+  <ul>
+    <li>Background: Subtle dot grid pattern with joints SVG overlay</li>
+    <li>Cards: Each card gets a small illustrative icon (form, chat bubble, text)</li>
+    <li>Hover effects with blue glow</li>
+  </ul>
+</div>
+
+<div class="section">
+  <h3>Therapist Section</h3>
+  <ul>
+    <li>Background: Soft blue gradient with anatomical skeleton at low opacity</li>
+    <li>Cards get colored icon badges and subtle border</li>
+  </ul>
+</div>
+
+<div class="section">
+  <h3>2. Auth Pages (login & signup)</h3>
+  <ul>
+    <li>Split layout: left side = form card, right side = full-height anatomical illustration</li>
+    <li>Right panel: light blue gradient with body silhouette and animated joint highlights</li>
+    <li>Logo updated: SVG anatomical logo instead of plain Activity icon</li>
+  </ul>
+</div>
+
+<div class="section">
+  <h3>3. Dashboard</h3>
+  <ul>
+    <li>Dashboard background: subtle dot pattern</li>
+    <li>Header: anatomical SVG banner (spine/joints) at low opacity</li>
+    <li>Stat cards: colored gradient backgrounds matching icon colors</li>
+    <li>Progress bars: gradient fills (blue → teal)</li>
+    <li>Sidebar: subtle gradient, active state with blue glow</li>
+  </ul>
+</div>
+
+<div class="section">
+  <h3>Key Components to Create</h3>
+  <ul>
+    <li><strong>RealisticBodySVG</strong> — Detailed full-body anatomical figure with proper proportions, visible spine curve, muscle outlines, highlighted joints</li>
+    <li><strong>JointIllustrations</strong> — Individual detailed knee, shoulder, hip, spine, elbow, ankle SVGs</li>
+    <li><strong>WavePattern</strong> — Reusable flowing wave SVG background component</li>
+    <li><strong>DotGridPattern</strong> — Subtle dot grid pattern component</li>
+    <li><strong>AnimatedJointDot</strong> — Pulsing highlight at joint positions</li>
+  </ul>
+</div>

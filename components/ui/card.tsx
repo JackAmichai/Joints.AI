@@ -1,14 +1,21 @@
 import * as React from "react";
 import { clsx } from "clsx";
 
-export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {}
+export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
+  variant?: "default" | "bento" | "glass";
+}
 
 export const Card = React.forwardRef<HTMLDivElement, CardProps>(
-  ({ className, ...props }, ref) => (
+  ({ className, variant = "default", ...props }, ref) => (
     <div
       ref={ref}
       className={clsx(
-        "rounded-lg border border-slate-200 bg-white text-slate-900 shadow-sm",
+        "rounded-3xl border transition-all duration-300",
+        {
+          "border-slate-200 bg-white text-slate-900 shadow-premium hover:shadow-xl": variant === "default",
+          "bento bento-pad": variant === "bento",
+          "bg-white/70 backdrop-blur-md border-white/20 shadow-premium": variant === "glass",
+        },
         className
       )}
       {...props}
@@ -23,7 +30,7 @@ export const CardHeader = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={clsx("flex flex-col space-y-1.5 p-6", className)}
+    className={clsx("flex flex-col space-y-1.5 p-8", className)}
     {...props}
   />
 ));
@@ -36,7 +43,7 @@ export const CardTitle = React.forwardRef<
   <h3
     ref={ref}
     className={clsx(
-      "text-2xl font-semibold leading-none tracking-tight",
+      "text-2xl font-bold leading-none tracking-tight text-slate-900",
       className
     )}
     {...props}
@@ -48,7 +55,7 @@ export const CardContent = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => (
-  <div ref={ref} className={clsx("p-6 pt-0", className)} {...props} />
+  <div ref={ref} className={clsx("p-8 pt-0", className)} {...props} />
 ));
 CardContent.displayName = "CardContent";
 
@@ -58,7 +65,7 @@ export const CardFooter = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={clsx("flex items-center p-6 pt-0", className)}
+    className={clsx("flex items-center p-8 pt-0", className)}
     {...props}
   />
 ));
@@ -70,7 +77,7 @@ export const CardDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <p
     ref={ref}
-    className={clsx("text-sm text-slate-500", className)}
+    className={clsx("text-base text-slate-500/90 leading-relaxed", className)}
     {...props}
   />
 ));
