@@ -145,7 +145,7 @@ export default function DashboardPage() {
       ? Math.round((stats.completedExercises / stats.totalExercises) * 100)
       : 0;
 
-  const { thisWeekCount, lastWeekCount, weeklyBars } = useMemo(() => {
+  const { thisWeekCount, lastWeekCount, weeklyBars, exerciseTrend } = useMemo(() => {
     const now = new Date();
     const weekdayOf = (d: Date) => (d.getDay() + 6) % 7; 
     const bars = new Array(7).fill(0) as number[];
@@ -171,10 +171,14 @@ export default function DashboardPage() {
       }
     }
     const max = Math.max(1, ...bars);
+    const weekOverWeek = lastWeek > 0
+      ? Math.round(((thisWeek - lastWeek) / lastWeek) * 100)
+      : thisWeek > 0 ? 100 : 0;
     return {
       thisWeekCount: thisWeek,
       lastWeekCount: lastWeek,
       weeklyBars: bars.map((b) => Math.max(8, (b / max) * 100)),
+      exerciseTrend: weekOverWeek > 0 ? `+${weekOverWeek}%` : weekOverWeek < 0 ? `${weekOverWeek}%` : null,
     };
   }, [allPlans]);
 
@@ -212,10 +216,10 @@ export default function DashboardPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <FadeIn delay={0.1} direction="up">
-          <StatCard icon={Target} iconBg="bg-brand-50" iconColor="text-brand-600" value={stats.completedExercises} label="Protocol Exercises" loading={loading} trend="+12%" />
+          <StatCard icon={Target} iconBg="bg-brand-50" iconColor="text-brand-600" value={stats.completedExercises} label="Protocol Exercises" loading={loading} trend={exerciseTrend ?? undefined} />
         </FadeIn>
         <FadeIn delay={0.2} direction="up">
-          <StatCard icon={CheckCircle} iconBg="bg-emerald-50" iconColor="text-emerald-600" value={`${progressPercent}%`} label="Overall Completion" loading={loading} trend="+5%" />
+          <StatCard icon={CheckCircle} iconBg="bg-emerald-50" iconColor="text-emerald-600" value={`${progressPercent}%`} label="Overall Completion" loading={loading} trend={progressPercent >= 80 ? "On track" : progressPercent > 0 ? undefined : undefined} />
         </FadeIn>
         <FadeIn delay={0.3} direction="up">
           <StatCard icon={Flame} iconBg="bg-orange-50" iconColor="text-orange-600" value={stats.currentStreak} label="Activity Streak" loading={loading} />
@@ -272,10 +276,10 @@ export default function DashboardPage() {
                         <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Active Week</span>
                         <span className="text-xl font-black text-ink tracking-tight">{thisWeekCount} <span className="text-xs font-bold text-slate-400 uppercase">Ex</span></span>
                      </div>
-                     <div className="flex flex-col gap-1">
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Efficiency</span>
-                        <span className="text-xl font-black text-emerald-600 tracking-tight">94.2%</span>
-                     </div>
+                      <div className="flex flex-col gap-1">
+                         <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Efficiency</span>
+                         <span className="text-xl font-black text-emerald-600 tracking-tight">{progressPercent}%</span>
+                      </div>
                   </div>
                   <Button variant="ghost" className="text-[10px] font-black uppercase tracking-widest text-brand-600 hover:bg-brand-50">
                      Export Telemetry <ChevronRight className="h-3 w-3 ml-2" />
@@ -291,18 +295,35 @@ export default function DashboardPage() {
                    <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
                       <Zap size={100} />
                    </div>
-                   <CardContent className="p-8">
-                      <h3 className="text-xl font-black mb-2 flex items-center gap-2">
-                         <Zap className="h-5 w-5" />
-                         Next Protocol
-                      </h3>
-                      <p className="text-brand-100 font-medium text-sm mb-6 leading-relaxed">
-                         You have Phase 2: Range of Motion scheduled for this afternoon. 15 minutes of guided movement.
-                      </p>
-                      <Button className="w-full bg-white text-brand-600 hover:bg-brand-50 rounded-xl h-12 font-black text-sm uppercase tracking-widest border-none shadow-lg">
-                         Resume Now
-                      </Button>
-                   </CardContent>
+                    <CardContent className="p-8">
+                       <h3 className="text-xl font-black mb-2 flex items-center gap-2">
+                          <Zap className="h-5 w-5" />
+                          Next Protocol
+                       </h3>
+                       {recentPlans.length > 0 ? (
+                         <>
+                           <p className="text-brand-100 font-medium text-sm mb-6 leading-relaxed">
+                              Continue your recovery plan with {recentPlans[0]!.total_exercises - recentPlans[0]!.exercises_completed} exercises remaining.
+                           </p>
+                           <Link href={`/results/${recentPlans[0]!.id}`}>
+                             <Button className="w-full bg-white text-brand-600 hover:bg-brand-50 rounded-xl h-12 font-black text-sm uppercase tracking-widest border-none shadow-lg">
+                                Resume Now
+                             </Button>
+                           </Link>
+                         </>
+                       ) : (
+                         <>
+                           <p className="text-brand-100 font-medium text-sm mb-6 leading-relaxed">
+                              Start your first assessment to get a personalized recovery plan with guided exercises.
+                           </p>
+                           <Link href="/assess/method">
+                             <Button className="w-full bg-white text-brand-600 hover:bg-brand-50 rounded-xl h-12 font-black text-sm uppercase tracking-widest border-none shadow-lg">
+                                Start Assessment
+                             </Button>
+                           </Link>
+                         </>
+                       )}
+                    </CardContent>
                 </Card>
              </FadeIn>
              <FadeIn delay={0.7}>

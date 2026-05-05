@@ -49,6 +49,23 @@ export function ResultsClient({ submissionId, halted }: ResultsClientProps) {
     }
   }, [user, submissionId, toast]);
 
+  const handleShare = useCallback(async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: "My Recovery Plan — Joints.AI",
+          text: "Check out my personalized physiotherapy plan",
+          url: window.location.href,
+        });
+      } catch {
+        // User cancelled share
+      }
+    } else {
+      await navigator.clipboard.writeText(window.location.href);
+      toast("Link copied to clipboard", "success");
+    }
+  }, [toast]);
+
   const fetchSubmission = useCallback(async () => {
     try {
       const data = await fetchSubmissionApi(submissionId);
@@ -71,15 +88,23 @@ export function ResultsClient({ submissionId, halted }: ResultsClientProps) {
     }
     let cancelled = false;
     let timer: ReturnType<typeof setTimeout> | null = null;
+    let consecutiveFailures = 0;
     const POLL_MS = 8000;
+    const MAX_FAILURES = 3;
     async function tick() {
       if (cancelled) return;
       const next = await fetchSubmission();
       if (cancelled) return;
       if (!next) {
+        consecutiveFailures += 1;
+        if (consecutiveFailures >= MAX_FAILURES) {
+          // Give up — the error UI will be shown via the `error` state.
+          return;
+        }
         timer = setTimeout(tick, POLL_MS * 2);
         return;
       }
+      consecutiveFailures = 0;
       if (!isTerminal(next.status)) {
         timer = setTimeout(tick, POLL_MS);
       }
@@ -209,9 +234,9 @@ export function ResultsClient({ submissionId, halted }: ResultsClientProps) {
               <Button variant="outline" className="rounded-xl h-12" onClick={handleDownloadPdf}>
                  <Download className="h-4 w-4 mr-2" /> PDF
               </Button>
-              <Button variant="outline" className="rounded-xl h-12">
-                 <Share2 className="h-4 w-4 mr-2" /> Share
-              </Button>
+               <Button variant="outline" className="rounded-xl h-12" onClick={handleShare}>
+                  <Share2 className="h-4 w-4 mr-2" /> Share
+               </Button>
            </div>
         </div>
       </FadeIn>

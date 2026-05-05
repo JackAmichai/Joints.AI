@@ -3,13 +3,15 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuthStore } from "@/store/authStore";
 import { authedFetch } from "@/lib/api/authedFetch";
 import { useToast } from "@/components/ui/toast";
-import { ArrowRight, User, Check, Activity, Zap } from "lucide-react";
+import { FadeIn } from "@/components/ui/fade-in";
+import { motion } from "framer-motion";
+import { ArrowRight, Check, Activity, Sparkles, ArrowLeft } from "lucide-react";
 
 interface OnboardingData {
   fullName: string;
@@ -20,10 +22,12 @@ interface OnboardingData {
 
 const FITNESS_OPTIONS = [
   { value: "sedentary", label: "Sedentary", description: "Little to no exercise" },
-  { value: "moderate", label: "Moderate", description: "Some exercise 1-3x/week" },
-  { value: "active", label: "Active", description: "Regular exercise 3-5x/week" },
+  { value: "moderate", label: "Moderate", description: "Some exercise 1–3x/week" },
+  { value: "active", label: "Active", description: "Regular exercise 3–5x/week" },
   { value: "athlete", label: "Athlete", description: "Intense exercise daily" },
 ];
+
+const TOTAL_STEPS = 3;
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -81,170 +85,215 @@ export default function OnboardingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white flex items-center justify-center p-4">
-      <div className="max-w-lg w-full">
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-slate-900 rounded-2xl mb-4">
-            <Activity className="h-8 w-8 text-white" />
-          </div>
-          <h1 className="text-3xl font-bold text-slate-900">Welcome to Joints.AI</h1>
-          <p className="text-slate-500 mt-2">Let&apos;s personalize your experience</p>
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-brand-50/40 via-white to-slate-50 flex items-center justify-center p-6 relative overflow-hidden">
+      <div className="absolute top-[-20%] right-[-10%] w-[60%] h-[60%] bg-brand-100/40 blur-[150px] rounded-full pointer-events-none" />
+      <div className="absolute bottom-[-20%] left-[-10%] w-[40%] h-[40%] bg-brand-50/60 blur-[120px] rounded-full pointer-events-none" />
 
-        <div className="flex items-center justify-center gap-3 mb-8">
-          {[1, 2, 3].map((s, i) => (
-            <div key={s} className="flex items-center">
-              <div
-                className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-all ${
-                  s < step
-                    ? "bg-slate-900 text-white"
-                    : s === step
-                    ? "bg-slate-900 text-white ring-4 ring-slate-200"
-                    : "bg-slate-200 text-slate-500"
-                }`}
-              >
-                {s < step ? <Check className="h-5 w-5" /> : s}
-              </div>
-              {i < 2 && (
-                <div className={`w-12 h-0.5 ${s < step ? "bg-slate-900" : "bg-slate-200"}`} />
-              )}
+      <div className="max-w-lg w-full relative z-10">
+        <FadeIn>
+          <div className="text-center mb-10">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-brand-600 rounded-3xl mb-6 shadow-2xl shadow-brand-200/60">
+              <Activity className="h-8 w-8 text-white" />
             </div>
-          ))}
-        </div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-50 text-brand-600 text-[10px] font-black uppercase tracking-[0.2em] mb-4 border border-brand-100">
+              <div className="w-1.5 h-1.5 rounded-full bg-brand-600 animate-pulse" />
+              Initialize Profile
+            </div>
+            <h1 className="text-4xl md:text-5xl font-black text-ink tracking-tight">
+              Welcome to Joints<span className="text-brand-600">.AI</span>
+            </h1>
+            <p className="text-slate-500 font-medium text-lg mt-2 italic">
+              Let&apos;s personalize your recovery system.
+            </p>
+          </div>
+        </FadeIn>
 
-        <Card className="border-0 shadow-xl">
-          <CardHeader>
-            <CardTitle className="text-center">
-              {step === 1 && "Tell us about yourself"}
-              {step === 2 && "Your fitness background"}
-              {step === 3 && "All done!"}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {step === 1 && (
-              <div className="space-y-6">
-                <div>
-                  <label className="block text-sm font-medium mb-2 text-slate-700">Full Name</label>
-                  <Input
-                    value={data.fullName}
-                    onChange={(e) => setData({ ...data, fullName: e.target.value })}
-                    placeholder="Enter your name"
-                    className="h-12"
-                    autoFocus
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2 text-slate-700">
-                    Age <span className="text-slate-400 font-normal">(optional)</span>
-                  </label>
-                  <Input
-                    type="number"
-                    value={data.age}
-                    onChange={(e) => setData({ ...data, age: e.target.value })}
-                    placeholder="Your age"
-                    className="h-12"
-                  />
-                </div>
-                <Button
-                  onClick={() => setStep(2)}
-                  className="w-full h-12 text-base bg-slate-900 hover:bg-slate-800"
-                  disabled={!canProceed()}
+        <FadeIn delay={0.1}>
+          <div className="flex items-center justify-center gap-2 mb-8">
+            {[1, 2, 3].map((s, i) => (
+              <div key={s} className="flex items-center">
+                <motion.div
+                  initial={false}
+                  animate={{
+                    scale: s === step ? 1.05 : 1,
+                  }}
+                  className={`w-11 h-11 rounded-2xl flex items-center justify-center text-sm font-black transition-all ${
+                    s < step
+                      ? "bg-brand-600 text-white shadow-lg shadow-brand-200/60"
+                      : s === step
+                      ? "bg-ink text-white shadow-xl ring-4 ring-brand-100"
+                      : "bg-white text-slate-400 border border-slate-100"
+                  }`}
                 >
-                  Continue <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-              </div>
-            )}
-
-            {step === 2 && (
-              <div className="space-y-6">
-                <div className="space-y-3">
-                  {FITNESS_OPTIONS.map((option) => (
-                    <button
-                      key={option.value}
-                      onClick={() => setData({ ...data, fitnessLevel: option.value })}
-                      className={`w-full p-4 rounded-lg border-2 text-left transition-all flex items-center gap-3 ${
-                        data.fitnessLevel === option.value
-                          ? "border-slate-900 bg-slate-50"
-                          : "border-slate-200 hover:border-slate-300"
-                      }`}
-                    >
-                      <div
-                        className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                          data.fitnessLevel === option.value ? "border-slate-900" : "border-slate-300"
-                        }`}
-                      >
-                        {data.fitnessLevel === option.value && (
-                          <div className="w-2.5 h-2.5 rounded-full bg-slate-900" />
-                        )}
-                      </div>
-                      <div>
-                        <p className="font-medium">{option.label}</p>
-                        <p className="text-sm text-slate-500">{option.description}</p>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2 text-slate-700">
-                    Known medical conditions <span className="text-slate-400 font-normal">(optional)</span>
-                  </label>
-                  <Input
-                    placeholder="e.g., diabetes, heart conditions, previous injuries"
-                    className="h-12"
-                    onChange={(e) =>
-                      setData({
-                        ...data,
-                        knownConditions: e.target.value
-                          ? e.target.value.split(",").map((s) => s.trim())
-                          : [],
-                      })
-                    }
+                  {s < step ? <Check className="h-5 w-5" /> : s}
+                </motion.div>
+                {i < 2 && (
+                  <div
+                    className={`w-12 h-1 rounded-full transition-colors ${
+                      s < step ? "bg-brand-600" : "bg-slate-100"
+                    }`}
                   />
-                </div>
-                <Button
-                  onClick={() => setStep(3)}
-                  className="w-full h-12 text-base bg-slate-900 hover:bg-slate-800"
-                  disabled={!canProceed()}
-                >
-                  Continue <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
+                )}
               </div>
-            )}
+            ))}
+          </div>
+        </FadeIn>
 
-            {step === 3 && (
-              <div className="text-center py-6">
-                <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Zap className="h-10 w-10 text-green-600" />
-                </div>
-                <h2 className="text-xl font-semibold mb-2">You&apos;re all set!</h2>
-                <p className="text-slate-500 mb-6">
-                  {data.fullName}, your profile is ready. Start your first assessment to get personalized exercises.
-                </p>
-                <div className="space-y-3">
+        <FadeIn delay={0.2}>
+          <Card variant="default" className="border-none shadow-2xl bg-white overflow-hidden">
+            <div className="bg-slate-50/50 px-8 py-5 border-b border-slate-100">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+                Step {step} of {TOTAL_STEPS}
+              </p>
+              <h2 className="text-2xl font-black text-ink tracking-tight mt-1">
+                {step === 1 && "Tell us about yourself"}
+                {step === 2 && "Your fitness background"}
+                {step === 3 && "You're all set"}
+              </h2>
+            </div>
+            <CardContent className="p-8">
+              {step === 1 && (
+                <div className="space-y-5">
+                  <div>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">
+                      Full Name
+                    </label>
+                    <Input
+                      value={data.fullName}
+                      onChange={(e) => setData({ ...data, fullName: e.target.value })}
+                      placeholder="Enter your name"
+                      className="h-12 rounded-xl"
+                      autoFocus
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">
+                      Age <span className="text-slate-300 normal-case tracking-normal">(optional)</span>
+                    </label>
+                    <Input
+                      type="number"
+                      value={data.age}
+                      onChange={(e) => setData({ ...data, age: e.target.value })}
+                      placeholder="Your age"
+                      className="h-12 rounded-xl"
+                    />
+                  </div>
                   <Button
-                    onClick={handleSave}
-                    disabled={loading}
-                    className="w-full h-12 text-base bg-slate-900 hover:bg-slate-800"
+                    onClick={() => setStep(2)}
+                    className="w-full h-14 rounded-2xl bg-brand-600 hover:bg-brand-700 text-white border-none font-black text-base shadow-xl shadow-brand-200/60 group"
+                    disabled={!canProceed()}
                   >
-                    {loading ? "Saving..." : "Go to Dashboard"}
+                    Continue
+                    <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                   </Button>
-                  <Link href="/assess/method" className="block">
-                    <Button variant="outline" className="w-full h-12 text-base">
-                      Start Assessment Now
-                    </Button>
-                  </Link>
                 </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+              )}
 
-        {step > 1 && (
+              {step === 2 && (
+                <div className="space-y-5">
+                  <div className="space-y-2">
+                    {FITNESS_OPTIONS.map((option) => {
+                      const selected = data.fitnessLevel === option.value;
+                      return (
+                        <button
+                          key={option.value}
+                          onClick={() => setData({ ...data, fitnessLevel: option.value })}
+                          className={`w-full p-4 rounded-2xl border-2 text-left transition-all flex items-center gap-4 ${
+                            selected
+                              ? "border-brand-500 bg-brand-50/60 shadow-md"
+                              : "border-slate-100 hover:border-brand-200 hover:bg-slate-50"
+                          }`}
+                        >
+                          <div
+                            className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors shrink-0 ${
+                              selected ? "border-brand-600 bg-brand-600" : "border-slate-200"
+                            }`}
+                          >
+                            {selected && <Check className="h-3.5 w-3.5 text-white" strokeWidth={3} />}
+                          </div>
+                          <div>
+                            <p className="font-black text-ink tracking-tight">{option.label}</p>
+                            <p className="text-sm text-slate-500 font-medium">{option.description}</p>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">
+                      Medical Conditions{" "}
+                      <span className="text-slate-300 normal-case tracking-normal">(optional)</span>
+                    </label>
+                    <Input
+                      placeholder="e.g. diabetes, previous injuries"
+                      className="h-12 rounded-xl"
+                      onChange={(e) =>
+                        setData({
+                          ...data,
+                          knownConditions: e.target.value
+                            ? e.target.value.split(",").map((s) => s.trim())
+                            : [],
+                        })
+                      }
+                    />
+                  </div>
+                  <Button
+                    onClick={() => setStep(3)}
+                    className="w-full h-14 rounded-2xl bg-brand-600 hover:bg-brand-700 text-white border-none font-black text-base shadow-xl shadow-brand-200/60 group"
+                    disabled={!canProceed()}
+                  >
+                    Continue
+                    <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+                </div>
+              )}
+
+              {step === 3 && (
+                <div className="text-center py-4">
+                  <motion.div
+                    initial={{ scale: 0.6, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ type: "spring", stiffness: 220, damping: 18 }}
+                    className="w-20 h-20 bg-emerald-50 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-inner"
+                  >
+                    <Sparkles className="h-10 w-10 text-emerald-600" />
+                  </motion.div>
+                  <h2 className="text-2xl font-black text-ink tracking-tight mb-3">
+                    You&apos;re ready, {data.fullName.split(" ")[0] || "Member"}.
+                  </h2>
+                  <p className="text-slate-500 font-medium mb-8 max-w-sm mx-auto leading-relaxed">
+                    Your profile is configured. Start your first assessment to generate a personalized
+                    rehabilitation protocol.
+                  </p>
+                  <div className="space-y-3">
+                    <Button
+                      onClick={handleSave}
+                      disabled={loading}
+                      className="w-full h-14 rounded-2xl bg-brand-600 hover:bg-brand-700 text-white border-none font-black text-base shadow-xl shadow-brand-200/60"
+                    >
+                      {loading ? "Saving..." : "Go to Dashboard"}
+                    </Button>
+                    <Link href="/assess/method" className="block">
+                      <Button
+                        variant="outline"
+                        className="w-full h-14 rounded-2xl border-2 font-black text-base"
+                      >
+                        Start Assessment Now
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </FadeIn>
+
+        {step > 1 && step < 3 && (
           <button
             onClick={() => setStep(step - 1)}
-            className="mt-6 block w-full text-center text-sm text-slate-500 hover:text-slate-700"
+            className="mt-6 mx-auto flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 hover:text-ink transition-colors"
           >
-            Back
+            <ArrowLeft className="h-3.5 w-3.5" /> Back
           </button>
         )}
       </div>

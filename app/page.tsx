@@ -280,22 +280,22 @@ export default function HomePage() {
                </p>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-16 md:gap-32">
-               <div className="space-y-8">
-                  <h5 className="font-black uppercase text-[10px] tracking-[0.3em] text-slate-300">Technology</h5>
-                  <ul className="space-y-4 font-bold text-slate-500">
-                     <li><Link href="#" className="hover:text-brand-600 transition-colors">Synthesis Engine</Link></li>
-                     <li><Link href="#" className="hover:text-brand-600 transition-colors">Biometric HUD</Link></li>
-                     <li><Link href="#" className="hover:text-brand-600 transition-colors">Neural Mapping</Link></li>
-                  </ul>
-               </div>
-               <div className="space-y-8">
-                  <h5 className="font-black uppercase text-[10px] tracking-[0.3em] text-slate-300">Company</h5>
-                  <ul className="space-y-4 font-bold text-slate-500">
-                     <li><Link href="#" className="hover:text-brand-600 transition-colors">About System</Link></li>
-                     <li><Link href="#" className="hover:text-brand-600 transition-colors">Clinical Hub</Link></li>
-                     <li><Link href="#" className="hover:text-brand-600 transition-colors">Contact Terminal</Link></li>
-                  </ul>
-               </div>
+                <div className="space-y-8">
+                   <h5 className="font-black uppercase text-[10px] tracking-[0.3em] text-slate-300">Product</h5>
+                   <ul className="space-y-4 font-bold text-slate-500">
+                      <li><Link href="/assess/method" className="hover:text-brand-600 transition-colors">Start Assessment</Link></li>
+                      <li><Link href="/dashboard" className="hover:text-brand-600 transition-colors">Dashboard</Link></li>
+                      <li><Link href="/signup" className="hover:text-brand-600 transition-colors">Create Account</Link></li>
+                   </ul>
+                </div>
+                <div className="space-y-8">
+                   <h5 className="font-black uppercase text-[10px] tracking-[0.3em] text-slate-300">Company</h5>
+                   <ul className="space-y-4 font-bold text-slate-500">
+                      <li><Link href="#" className="hover:text-brand-600 transition-colors">About</Link></li>
+                      <li><Link href="/dashboard/therapists" className="hover:text-brand-600 transition-colors">Find a Therapist</Link></li>
+                      <li><Link href="#" className="hover:text-brand-600 transition-colors">Contact</Link></li>
+                   </ul>
+                </div>
             </div>
           </div>
           <div className="pt-12 border-t border-slate-50 flex flex-col md:flex-row justify-between items-center gap-8">
@@ -303,8 +303,8 @@ export default function HomePage() {
                &copy; {new Date().getFullYear()} JOINTS AI TECHNOLOGY CORP. ALL RIGHTS RESERVED.
             </div>
             <div className="flex gap-10 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-               <Link href="#" className="hover:text-brand-600 transition-colors">Privacy Terminal</Link>
-               <Link href="#" className="hover:text-brand-600 transition-colors">Legal Protocol</Link>
+               <Link href="#" className="hover:text-brand-600 transition-colors">Privacy Policy</Link>
+                <Link href="#" className="hover:text-brand-600 transition-colors">Terms of Service</Link>
             </div>
           </div>
         </div>

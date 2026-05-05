@@ -21,8 +21,8 @@ export function PillGroup<T extends string>({
 }: PillGroupProps<T>) {
   return (
     <fieldset className="mt-6">
-      <legend className="text-sm font-medium text-ink">{label}</legend>
-      {hint ? <p className="mt-1 text-sm text-ink-muted">{hint}</p> : null}
+      <legend className="text-sm font-black text-ink">{label}</legend>
+      {hint ? <p className="mt-1 text-xs font-bold text-slate-400 uppercase tracking-widest">{hint}</p> : null}
       <div className="mt-3 flex flex-wrap gap-2">
         {options.map((o) => {
           const active = selected.includes(o.value);
@@ -32,7 +32,12 @@ export function PillGroup<T extends string>({
               type="button"
               aria-pressed={active}
               onClick={() => onToggle(o.value)}
-              className={cn("pill", active ? "pill-active" : "pill-default")}
+              className={cn(
+                "inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-bold transition-all duration-200",
+                active
+                  ? "border-brand-300 bg-brand-50 text-brand-600 shadow-sm shadow-brand-100"
+                  : "border-slate-200 bg-white text-slate-500 hover:border-brand-200 hover:text-ink"
+              )}
               title={o.hint}
             >
               {o.label}
@@ -41,7 +46,7 @@ export function PillGroup<T extends string>({
         })}
       </div>
       {mode === "single" ? (
-        <p className="mt-2 text-xs text-ink-muted">Pick one.</p>
+        <p className="mt-2 text-xs font-bold text-slate-400 uppercase tracking-widest">Pick one.</p>
       ) : null}
     </fieldset>
   );

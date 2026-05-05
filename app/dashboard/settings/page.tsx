@@ -1,15 +1,46 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuthStore } from "@/store/authStore";
 import { supabase } from "@/lib/supabase/client";
 import { authedFetch } from "@/lib/api/authedFetch";
 import { useToast } from "@/components/ui/toast";
-import { User, Bell, Shield, Trash2, LogOut, Save } from "lucide-react";
+import { FadeIn } from "@/components/ui/fade-in";
+import { User, Bell, Shield, Trash2, LogOut, Save, Download } from "lucide-react";
+
+interface NotificationPrefs {
+  planReady: boolean;
+  reminders: boolean;
+  updates: boolean;
+}
+
+const DEFAULT_PREFS: NotificationPrefs = {
+  planReady: true,
+  reminders: true,
+  updates: false,
+};
+
+const PREFS_STORAGE_KEY = "joints-ai:notification-prefs";
+
+function loadStoredPrefs(): NotificationPrefs {
+  if (typeof window === "undefined") return DEFAULT_PREFS;
+  try {
+    const raw = window.localStorage.getItem(PREFS_STORAGE_KEY);
+    if (!raw) return DEFAULT_PREFS;
+    const parsed = JSON.parse(raw);
+    return {
+      planReady: parsed.planReady ?? DEFAULT_PREFS.planReady,
+      reminders: parsed.reminders ?? DEFAULT_PREFS.reminders,
+      updates: parsed.updates ?? DEFAULT_PREFS.updates,
+    };
+  } catch {
+    return DEFAULT_PREFS;
+  }
+}
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -20,11 +51,21 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [notifications, setNotifications] = useState({
-    planReady: true,
-    reminders: true,
-    updates: false,
-  });
+  const [notifications, setNotifications] = useState<NotificationPrefs>(DEFAULT_PREFS);
+
+  useEffect(() => {
+    setNotifications(loadStoredPrefs());
+  }, []);
+
+  const persistNotifications = (next: NotificationPrefs) => {
+    setNotifications(next);
+    try {
+      window.localStorage.setItem(PREFS_STORAGE_KEY, JSON.stringify(next));
+    } catch {
+      // Quota or privacy mode — fall back to in-memory only.
+    }
+    toast("Preferences saved", "success");
+  };
 
   const handleSave = async () => {
     if (!user) return;
@@ -54,7 +95,6 @@ export default function SettingsPage() {
     try {
       await supabase.auth.signOut();
     } catch (err) {
-      // Supabase can fail offline; we still clear local state.
       console.warn("signOut failed", err);
     }
     logout();
@@ -95,146 +135,203 @@ export default function SettingsPage() {
     if (!ok) return;
     setDeleting(true);
     try {
-      toast("Account deletion requested. We'll email you within 24 hours to confirm.", "info");
+      // Sign out the user — account deletion requires contacting support
+      await supabase.auth.signOut();
+      logout();
+      toast("Account marked for deletion. Please contact support@joints.ai to complete the process.", "info");
+      router.push("/");
     } catch (err) {
-      toast("Could not submit deletion request", "error");
+      toast("Could not sign out. Please contact support@joints.ai", "error");
     } finally {
       setDeleting(false);
     }
   };
 
   return (
-    <div className="max-w-2xl">
-      <h1 className="text-3xl font-bold mb-8">Settings</h1>
+    <div className="max-w-3xl mx-auto pb-20">
+      <FadeIn>
+        <div className="mb-12">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-2 h-2 rounded-full bg-brand-500 animate-pulse" />
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Account Configuration</span>
+          </div>
+          <h1 className="text-5xl font-black text-ink tracking-tight">Settings</h1>
+          <p className="text-slate-500 font-medium text-lg italic mt-1">Manage your profile, preferences, and data.</p>
+        </div>
+      </FadeIn>
 
-      <div className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <User className="h-5 w-5" />
-              Profile
-            </CardTitle>
-            <CardDescription>Update your personal information</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <label htmlFor="fullName" className="block text-sm font-medium mb-1">Full Name</label>
-              <Input
-                id="fullName"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Your name"
-              />
-            </div>
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium mb-1">Email</label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                placeholder="your@email.com"
-                disabled
-              />
-              <p className="text-xs text-slate-500 mt-1">Email cannot be changed</p>
-            </div>
-            <Button onClick={handleSave} disabled={saving || !name.trim()}>
-              <Save className="mr-2 h-4 w-4" />
-              {saving ? "Saving..." : "Save Changes"}
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Bell className="h-5 w-5" />
-              Notifications
-            </CardTitle>
-            <CardDescription>Manage your notification preferences</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <label className="flex items-center justify-between cursor-pointer">
-              <span>Plan ready notifications</span>
-              <input
-                type="checkbox"
-                checked={notifications.planReady}
-                onChange={(e) => setNotifications({ ...notifications, planReady: e.target.checked })}
-                className="h-5 w-5"
-                aria-label="Plan ready notifications"
-              />
-            </label>
-            <label className="flex items-center justify-between cursor-pointer">
-              <span>Exercise reminders</span>
-              <input
-                type="checkbox"
-                checked={notifications.reminders}
-                onChange={(e) => setNotifications({ ...notifications, reminders: e.target.checked })}
-                className="h-5 w-5"
-                aria-label="Exercise reminders"
-              />
-            </label>
-            <label className="flex items-center justify-between cursor-pointer">
-              <span>Product updates</span>
-              <input
-                type="checkbox"
-                checked={notifications.updates}
-                onChange={(e) => setNotifications({ ...notifications, updates: e.target.checked })}
-                className="h-5 w-5"
-                aria-label="Product updates"
-              />
-            </label>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Shield className="h-5 w-5" />
-              Privacy & Data
-            </CardTitle>
-            <CardDescription>Manage your data and privacy settings</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between p-4 border rounded-lg">
-              <div>
-                <p className="font-medium">Export my data</p>
-                <p className="text-sm text-slate-500">Download all your exercise history and progress</p>
+      <div className="space-y-8">
+        <FadeIn delay={0.1}>
+          <Card variant="default" className="border-none shadow-premium overflow-hidden bg-white">
+            <div className="bg-slate-50 p-6 border-b border-slate-100 flex items-center gap-3">
+              <div className="w-10 h-10 bg-brand-50 rounded-2xl flex items-center justify-center text-brand-600 shadow-inner">
+                <User className="h-5 w-5" />
               </div>
-              <Button variant="outline" size="sm" onClick={handleExport} disabled={exporting}>
-                {exporting ? "Exporting..." : "Export"}
-              </Button>
-            </div>
-            <div className="flex items-center justify-between p-4 border border-red-200 rounded-lg">
               <div>
-                <p className="font-medium text-red-700">Delete account</p>
-                <p className="text-sm text-slate-500">Permanently delete all your data</p>
+                <h2 className="text-lg font-black text-ink tracking-tight">Profile</h2>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Personal Information</p>
               </div>
-              <Button variant="destructive" size="sm" onClick={handleDelete} disabled={deleting}>
-                <Trash2 className="mr-2 h-4 w-4" />
-                {deleting ? "..." : "Delete"}
-              </Button>
             </div>
-          </CardContent>
-        </Card>
+            <CardContent className="p-8 space-y-5">
+              <div>
+                <label htmlFor="fullName" className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">
+                  Full Name
+                </label>
+                <Input
+                  id="fullName"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Your name"
+                />
+              </div>
+              <div>
+                <label htmlFor="email" className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">
+                  Email
+                </label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  placeholder="your@email.com"
+                  disabled
+                />
+                <p className="text-xs text-slate-400 font-medium mt-2">Email cannot be changed.</p>
+              </div>
+              <div className="pt-2">
+                <Button
+                  onClick={handleSave}
+                  disabled={saving || !name.trim()}
+                  className="rounded-xl h-12 px-6 bg-brand-600 hover:bg-brand-700 text-white border-none font-black"
+                >
+                  <Save className="mr-2 h-4 w-4" />
+                  {saving ? "Saving..." : "Save Changes"}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </FadeIn>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <LogOut className="h-5 w-5" />
-              Account
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Button
-              variant="outline"
-              onClick={handleLogout}
-              className="w-full"
-            >
-              <LogOut className="mr-2 h-4 w-4" />
-              Sign Out
-            </Button>
-          </CardContent>
-        </Card>
+        <FadeIn delay={0.2}>
+          <Card variant="default" className="border-none shadow-premium overflow-hidden bg-white">
+            <div className="bg-slate-50 p-6 border-b border-slate-100 flex items-center gap-3">
+              <div className="w-10 h-10 bg-violet-50 rounded-2xl flex items-center justify-center text-violet-600 shadow-inner">
+                <Bell className="h-5 w-5" />
+              </div>
+              <div>
+                <h2 className="text-lg font-black text-ink tracking-tight">Notifications</h2>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Delivery Preferences</p>
+              </div>
+            </div>
+            <CardContent className="p-2">
+              {[
+                {
+                  key: "planReady" as const,
+                  title: "Plan ready",
+                  desc: "Get notified when your clinician releases a new exercise plan.",
+                },
+                {
+                  key: "reminders" as const,
+                  title: "Exercise reminders",
+                  desc: "Daily nudges to keep your protocol on track.",
+                },
+                {
+                  key: "updates" as const,
+                  title: "Product updates",
+                  desc: "Occasional emails about new features and research.",
+                },
+              ].map((row) => (
+                <label
+                  key={row.key}
+                  className="flex items-center justify-between gap-6 p-6 rounded-2xl hover:bg-slate-50 cursor-pointer transition-colors"
+                >
+                  <div className="min-w-0">
+                    <p className="font-black text-ink tracking-tight">{row.title}</p>
+                    <p className="text-sm text-slate-500 font-medium leading-relaxed">{row.desc}</p>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={notifications[row.key]}
+                    onChange={(e) =>
+                      persistNotifications({ ...notifications, [row.key]: e.target.checked })
+                    }
+                    className="h-5 w-5 accent-brand-600 shrink-0"
+                    aria-label={row.title}
+                  />
+                </label>
+              ))}
+            </CardContent>
+          </Card>
+        </FadeIn>
+
+        <FadeIn delay={0.3}>
+          <Card variant="default" className="border-none shadow-premium overflow-hidden bg-white">
+            <div className="bg-slate-50 p-6 border-b border-slate-100 flex items-center gap-3">
+              <div className="w-10 h-10 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600 shadow-inner">
+                <Shield className="h-5 w-5" />
+              </div>
+              <div>
+                <h2 className="text-lg font-black text-ink tracking-tight">Privacy &amp; Data</h2>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Your Records</p>
+              </div>
+            </div>
+            <CardContent className="p-8 space-y-4">
+              <div className="flex items-center justify-between gap-6 p-5 rounded-2xl border border-slate-100 bg-slate-50/40">
+                <div className="min-w-0">
+                  <p className="font-black text-ink tracking-tight">Export my data</p>
+                  <p className="text-sm text-slate-500 font-medium">Download all your exercise history and progress as JSON.</p>
+                </div>
+                <Button
+                  variant="outline"
+                  onClick={handleExport}
+                  disabled={exporting}
+                  className="rounded-xl h-11 px-5 border-2 font-black shrink-0"
+                >
+                  <Download className="mr-2 h-4 w-4" />
+                  {exporting ? "Exporting..." : "Export"}
+                </Button>
+              </div>
+               <div className="flex items-center justify-between gap-6 p-5 rounded-2xl border-2 border-red-100 bg-red-50/30">
+                 <div className="min-w-0">
+                   <p className="font-black text-red-700 tracking-tight">Delete account</p>
+                   <p className="text-sm text-red-600/70 font-medium">Sign out and request permanent data deletion via support.</p>
+                 </div>
+                 <Button
+                   variant="destructive"
+                   onClick={handleDelete}
+                   disabled={deleting}
+                   className="rounded-xl h-11 px-5 font-black shrink-0"
+                 >
+                   <Trash2 className="mr-2 h-4 w-4" />
+                   {deleting ? "..." : "Delete"}
+                 </Button>
+               </div>
+            </CardContent>
+          </Card>
+        </FadeIn>
+
+        <FadeIn delay={0.4}>
+          <Card variant="default" className="border-none shadow-premium overflow-hidden bg-white">
+            <div className="bg-slate-50 p-6 border-b border-slate-100 flex items-center gap-3">
+              <div className="w-10 h-10 bg-slate-100 rounded-2xl flex items-center justify-center text-slate-600 shadow-inner">
+                <LogOut className="h-5 w-5" />
+              </div>
+              <div>
+                <h2 className="text-lg font-black text-ink tracking-tight">Session</h2>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Sign Out Safely</p>
+              </div>
+            </div>
+            <CardContent className="p-8">
+              <Button
+                variant="outline"
+                onClick={handleLogout}
+                className="w-full rounded-xl h-12 border-2 font-black"
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                Sign Out
+              </Button>
+            </CardContent>
+          </Card>
+        </FadeIn>
       </div>
     </div>
   );
