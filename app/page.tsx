@@ -288,25 +288,25 @@ export default function HomePage() {
                       <li><Link href="/signup" className="hover:text-brand-600 transition-colors">Create Account</Link></li>
                    </ul>
                 </div>
-                <div className="space-y-8">
-                   <h5 className="font-black uppercase text-[10px] tracking-[0.3em] text-slate-300">Company</h5>
-                   <ul className="space-y-4 font-bold text-slate-500">
-                      <li><Link href="#" className="hover:text-brand-600 transition-colors">About</Link></li>
-                      <li><Link href="/dashboard/therapists" className="hover:text-brand-600 transition-colors">Find a Therapist</Link></li>
-                      <li><Link href="#" className="hover:text-brand-600 transition-colors">Contact</Link></li>
-                   </ul>
-                </div>
+                 <div className="space-y-8">
+                    <h5 className="font-black uppercase text-[10px] tracking-[0.3em] text-slate-300">Company</h5>
+                    <ul className="space-y-4 font-bold text-slate-500">
+                       <li><Link href="/legal/about" className="hover:text-brand-600 transition-colors">About</Link></li>
+                       <li><Link href="/dashboard/therapists" className="hover:text-brand-600 transition-colors">Find a Therapist</Link></li>
+                       <li><a href="mailto:support@joints.ai" className="hover:text-brand-600 transition-colors">Contact</a></li>
+                    </ul>
+                 </div>
             </div>
           </div>
-          <div className="pt-12 border-t border-slate-50 flex flex-col md:flex-row justify-between items-center gap-8">
-            <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-               &copy; {new Date().getFullYear()} JOINTS AI TECHNOLOGY CORP. ALL RIGHTS RESERVED.
-            </div>
-            <div className="flex gap-10 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-               <Link href="#" className="hover:text-brand-600 transition-colors">Privacy Policy</Link>
-                <Link href="#" className="hover:text-brand-600 transition-colors">Terms of Service</Link>
-            </div>
-          </div>
+            <div className="pt-12 border-t border-slate-50 flex flex-col md:flex-row justify-between items-center gap-8">
+             <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                &copy; {new Date().getFullYear()} JOINTS AI TECHNOLOGY CORP. ALL RIGHTS RESERVED.
+             </div>
+             <div className="flex gap-10 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                <Link href="/legal/privacy" className="hover:text-brand-600 transition-colors">Privacy Policy</Link>
+                 <Link href="/legal/terms" className="hover:text-brand-600 transition-colors">Terms of Service</Link>
+             </div>
+           </div>
         </div>
       </footer>
     </main>

@@ -182,6 +182,51 @@ export default function DashboardPage() {
     };
   }, [allPlans]);
 
+  const aiInsight = useMemo(() => {
+    if (allPlans.length === 0) {
+      return { message: "Complete your first assessment to receive personalized AI insights about your recovery pattern.", tip: "Awaiting Data" };
+    }
+    const completedPlans = allPlans.filter(p => p.status === "plan_completed").length;
+    const avgCompletion = allPlans.reduce((acc, p) => acc + (p.exercises_completed || 0), 0) / allPlans.length;
+    const completionRate = allPlans.reduce((acc, p) => acc + (p.total_exercises || 0), 0);
+    const pct = completionRate > 0 ? Math.round((allPlans.reduce((acc, p) => acc + (p.exercises_completed || 0), 0) / completionRate) * 100) : 0;
+
+    if (pct >= 80 && completedPlans >= 2) {
+      return { message: `Your completion rate is ${pct}% across ${allPlans.length} protocols. Consistency drives recovery — maintain this momentum for optimal results.`, tip: "High Performance" };
+    }
+    if (thisWeekCount > lastWeekCount && lastWeekCount > 0) {
+      return { message: `You've increased activity by ${exerciseTrend} this week. This upward trend correlates with faster recovery timelines. Keep pushing.`, tip: "Positive Trend" };
+    }
+    if (avgCompletion < 3) {
+      return { message: `Average ${avgCompletion.toFixed(1)} exercises completed per protocol. Focus on completing smaller batches consistently — even 2-3 units daily accelerates healing.`, tip: "Focus Area" };
+    }
+    return { message: `Tracking ${allPlans.length} protocols with ${pct}% average completion. Your data pattern shows steady engagement — the system will refine recommendations as more feedback arrives.`, tip: "Analyzing Pattern" };
+  }, [allPlans, thisWeekCount, lastWeekCount, exerciseTrend]);
+
+  const handleExport = () => {
+    const data = {
+      exportDate: new Date().toISOString(),
+      user: { id: user?.id, email: user?.email, name: user?.full_name },
+      stats,
+      progressPercent,
+      weeklyActivity: { thisWeekCount, lastWeekCount, trend: exerciseTrend },
+      plans: allPlans.map(p => ({
+        id: p.id,
+        created: p.created_at,
+        status: p.status,
+        exercisesCompleted: p.exercises_completed,
+        totalExercises: p.total_exercises,
+      })),
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `joints-ai-telemetry-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const firstName = user?.full_name?.split(" ")[0];
 
   return (
@@ -281,9 +326,9 @@ export default function DashboardPage() {
                          <span className="text-xl font-black text-emerald-600 tracking-tight">{progressPercent}%</span>
                       </div>
                   </div>
-                  <Button variant="ghost" className="text-[10px] font-black uppercase tracking-widest text-brand-600 hover:bg-brand-50">
-                     Export Telemetry <ChevronRight className="h-3 w-3 ml-2" />
-                  </Button>
+                   <Button variant="ghost" className="text-[10px] font-black uppercase tracking-widest text-brand-600 hover:bg-brand-50" onClick={handleExport}>
+                      Export Telemetry <ChevronRight className="h-3 w-3 ml-2" />
+                   </Button>
                 </div>
               </CardContent>
             </Card>
@@ -326,23 +371,23 @@ export default function DashboardPage() {
                     </CardContent>
                 </Card>
              </FadeIn>
-             <FadeIn delay={0.7}>
-                <Card variant="default" className="border-none shadow-premium bg-slate-900 text-white overflow-hidden relative">
-                   <div className="absolute inset-0 bg-gradient-to-br from-slate-800 to-slate-900 -z-10" />
-                   <CardContent className="p-8">
-                      <h3 className="text-xl font-black mb-2 flex items-center gap-2">
-                         <BrainCircuit className="h-5 w-5 text-brand-400" />
-                         AI Insight
-                      </h3>
-                      <p className="text-slate-400 font-medium text-sm mb-6 leading-relaxed">
-                         Your knee stability has increased by 14% based on your last 3 feedback reports. Stay focused on eccentric holds.
-                      </p>
-                      <div className="flex items-center gap-2 text-[10px] font-black text-brand-400 uppercase tracking-[0.2em]">
-                         Deep Learning Active <div className="w-2 h-2 rounded-full bg-brand-400 animate-pulse" />
-                      </div>
-                   </CardContent>
-                </Card>
-             </FadeIn>
+              <FadeIn delay={0.7}>
+                 <Card variant="default" className="border-none shadow-premium bg-slate-900 text-white overflow-hidden relative">
+                    <div className="absolute inset-0 bg-gradient-to-br from-slate-800 to-slate-900 -z-10" />
+                    <CardContent className="p-8">
+                       <h3 className="text-xl font-black mb-2 flex items-center gap-2">
+                          <BrainCircuit className="h-5 w-5 text-brand-400" />
+                          AI Insight
+                       </h3>
+                       <p className="text-slate-400 font-medium text-sm mb-6 leading-relaxed">
+                          {aiInsight.message}
+                       </p>
+                       <div className="flex items-center gap-2 text-[10px] font-black text-brand-400 uppercase tracking-[0.2em]">
+                          {aiInsight.tip} <div className="w-2 h-2 rounded-full bg-brand-400 animate-pulse" />
+                       </div>
+                    </CardContent>
+                 </Card>
+              </FadeIn>
           </div>
         </div>
 
