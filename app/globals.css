@@ -88,3 +88,42 @@ body {
 .animate-breathe {
   animation: breathe 4s ease-in-out infinite;
 }
+
+/* Gradient text utility */
+.gradient-text-anatomy {
+  background: linear-gradient(135deg, #2F6FEB, #0D9488);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Joint glow effect */
+.joint-glow {
+  box-shadow: 0 0 12px rgba(47, 111, 235, 0.3), 0 0 24px rgba(47, 111, 235, 0.1);
+}
+
+/* Wave divider */
+.wave-divider {
+  height: 40px;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 1440 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0,20 Q360,0 720,20 T1440,20' fill='none' stroke='%232F6FEB' stroke-width='8' opacity='0.06'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+}
+
+/* Card border accent */
+.card-accent-left {
+  border-left: 3px solid #2F6FEB;
+}
+
+.card-accent-left-teal {
+  border-left: 3px solid #0D9488;
+}
+
+.card-accent-left-violet {
+  border-left: 3px solid #7C3AED;
+}
+
+.card-accent-left-amber {
+  border-left: 3px solid #B45309;
+}
